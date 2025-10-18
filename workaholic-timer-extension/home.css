@@ -1,0 +1,102 @@
+body {
+    font-family: sans-serif;
+    width: 320px;
+    padding: 20px;
+    text-align: center;
+    margin: 0;
+}
+
+h3 {
+    margin: 0 0 12px 0;
+    font-size: 18px;
+    color: #333;
+}
+
+.inputs {
+    margin: 16px 0;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: center;
+}
+
+.inputs > div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.inputs label {
+    font-size: 13px;
+    color: #666;
+    font-weight: 500;
+}
+
+input {
+    width: 70px;
+    text-align: center;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+input:disabled {
+    background: #f5f5f5;
+    color: #999;
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 500;
+    margin-top: 8px;
+    transition: background 0.2s;
+}
+
+#startBtn {
+    background: #28a745;
+    color: white;
+}
+
+#startBtn:hover {
+    background: #218838;
+}
+
+#stopBtn {
+    background: #dc3545;
+    color: white;
+    display: none;
+}
+
+#stopBtn:hover {
+    background: #c82333;
+}
+
+button:active {
+    transform: translateY(1px);
+}
+
+button:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+#timerDisplay {
+    margin: 20px 0;
+    font-size: 42px;
+    font-weight: bold;
+    color: #333;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 2px;
+}
+
+.goal-info {
+    font-size: 13px;
+    color: #666;
+    margin-top: 8px;
+}

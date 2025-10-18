@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Workaholic Timer",
+  "version": "0.0.1",
+  "description": "Timer for workaholics",
+  "action": {
+    "default_popup": "home.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": ["activeTab", "scripting", "tabs", "alarms"],
+  "host_permissions": ["<all_urls>"]
+}
