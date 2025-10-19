@@ -6,10 +6,7 @@ let timerState = {
     goalTimeFormatted: "",
     lastNotificationTabId: null
 };
-
 let alarmName = "workaholicTimer";
-
-// dangerZone, workTimeFloatingBox
 
 async function injectNotificationIntoTab(goalTimeFormatted, elapsedAtInject) {
     try {
@@ -30,7 +27,7 @@ async function injectNotificationIntoTab(goalTimeFormatted, elapsedAtInject) {
             target: { tabId: tab.id },
             world: "MAIN",
             func: (goalTime, initialElapsed) => {
-                const ID = "__workaholic_floating_box_v1__";
+                const ID = "__workTime_floating_box_v1__";
                 const existing = document.getElementById(ID);
                 if (existing) {
                     if (existing.dataset.overTimerInterval) clearInterval(existing.dataset.overTimerInterval);
@@ -41,7 +38,7 @@ async function injectNotificationIntoTab(goalTimeFormatted, elapsedAtInject) {
                 box.id = ID;
 
                 const span = document.createElement("span");
-                span.innerHTML = `⏱ Goal time: ${goalTime} | Current time: <span id="__workaholic_current_time__">00:00:00</span>`;
+                span.innerHTML = `⏱ Goal time: ${goalTime} | Current time: <span id="__current_workTime__">00:00:00</span>`;
                 box.appendChild(span);
                 box.style.cssText = `
                     position: fixed;
@@ -60,7 +57,7 @@ async function injectNotificationIntoTab(goalTimeFormatted, elapsedAtInject) {
                     gap: 8px;
                 `;
                 document.body.appendChild(box);
-                const currentTimeEl = document.getElementById("__workaholic_current_time__");
+                const currentTimeEl = document.getElementById("__current_workTime__");
 
                 function formatTime(totalSeconds) {
                     const h = Math.floor(totalSeconds / 3600);
@@ -69,22 +66,30 @@ async function injectNotificationIntoTab(goalTimeFormatted, elapsedAtInject) {
                     return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
                 }
 
-                let current = initialElapsed;
-                currentTimeEl.textContent = formatTime(current);
+                let currentWorkTime = initialElapsed;
+                currentTimeEl.textContent = formatTime(currentWorkTime);
                 const interval = setInterval(() => {
-                    current++;
-                    currentTimeEl.textContent = formatTime(current);
+                    currentWorkTime++;
+                    currentTimeEl.textContent = formatTime(currentWorkTime);
 
-                    if (current - parseInt(goalTime.split(':')[0]) * 3600
-                        - parseInt(goalTime.split(':')[1]) * 60
-                        - parseInt(goalTime.split(':')[2]) >= 5) {
-                        box.style.background = "#dc3545";
-                        currentTimeEl.style.fontSize = "22px";
-                        currentTimeEl.style.fontWeight = "bold";
+                    if (checkIfDangerZoneIsReached(currentWorkTime, goalTime)) {
+                        setStyleForWorkTimeFloatingBoxInDangerZone(box, currentTimeEl)
                     }
                 }, 1000);
 
                 box.dataset.overTimerInterval = interval;
+
+                function checkIfDangerZoneIsReached(currentWorkTime, goalTime) {
+                    return currentWorkTime - parseInt(goalTime.split(':')[0]) * 3600
+                        - parseInt(goalTime.split(':')[1]) * 60
+                        - parseInt(goalTime.split(':')[2]) >= 5
+                }
+
+                function setStyleForWorkTimeFloatingBoxInDangerZone(box, currentTimeEl) {
+                    box.style.background = "#dc3545";
+                    currentTimeEl.style.fontSize = "22px";
+                    currentTimeEl.style.fontWeight = "bold";
+                }
             },
             args: [goalTimeFormatted, elapsedAtInject]
         });
@@ -178,16 +183,14 @@ async function removeNotificationFromTab(tabId) {
             target: { tabId: tabId },
             world: "MAIN",
             func: () => {
-                const ID = "__workaholic_floating_box_v1__";
+                const ID = "__workTime_floating_box_v1__";
                 const existing = document.getElementById(ID);
                 if (existing) {
                     if (existing.dataset.overTimerInterval) clearInterval(existing.dataset.overTimerInterval);
                     existing.remove();
-                    console.log("=== BOX REMOVED ===");
                 }
             }
         });
-        console.log(`Removed notification from tab ${tabId}`);
     } catch (err) {
         console.log(`Could not remove notification from tab ${tabId}:`, err.message);
     }
