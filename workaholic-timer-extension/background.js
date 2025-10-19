@@ -57,15 +57,8 @@ async function injectNotificationIntoTab(goalTimeFormatted, elapsedAtInject) {
                     gap: 8px;
                 `;
                 document.body.appendChild(box);
+
                 const currentTimeEl = document.getElementById("__current_workTime__");
-
-                function formatTime(totalSeconds) {
-                    const h = Math.floor(totalSeconds / 3600);
-                    const m = Math.floor((totalSeconds % 3600) / 60);
-                    const s = totalSeconds % 60;
-                    return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-                }
-
                 let currentWorkTime = initialElapsed;
                 currentTimeEl.textContent = formatTime(currentWorkTime);
                 const interval = setInterval(() => {
@@ -78,6 +71,13 @@ async function injectNotificationIntoTab(goalTimeFormatted, elapsedAtInject) {
                 }, 1000);
 
                 box.dataset.overTimerInterval = interval;
+
+                function formatTime(totalSeconds) {
+                    const h = Math.floor(totalSeconds / 3600);
+                    const m = Math.floor((totalSeconds % 3600) / 60);
+                    const s = totalSeconds % 60;
+                    return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+                }
 
                 function checkIfDangerZoneIsReached(currentWorkTime, goalTime) {
                     return currentWorkTime - parseInt(goalTime.split(':')[0]) * 3600
