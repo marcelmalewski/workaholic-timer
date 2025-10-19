@@ -64,6 +64,7 @@ async function updateUI() {
     }
 }
 
+// noinspection DuplicatedCode
 function formatTime(totalSeconds) {
     const h = Math.floor(totalSeconds / 3600);
     const m = Math.floor((totalSeconds % 3600) / 60);

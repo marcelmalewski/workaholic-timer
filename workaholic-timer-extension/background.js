@@ -9,42 +9,7 @@ let timerState = {
 
 let alarmName = "workaholicTimer";
 
-function formatTime(totalSeconds) {
-    const h = Math.floor(totalSeconds / 3600);
-    const m = Math.floor((totalSeconds % 3600) / 60);
-    const s = totalSeconds % 60;
-    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-}
-
-async function showNotificationBox() {
-    const goalTimeFormatted = formatTime(timerState.goalSeconds);
-    timerState.goalTimeFormatted = goalTimeFormatted;
-    const elapsed = getElapsedSeconds(); // Get real elapsed time
-    await injectNotificationIntoTab(goalTimeFormatted, elapsed);
-}
-
-async function removeNotificationFromTab(tabId) {
-    if (!tabId) return;
-
-    try {
-        await chrome.scripting.executeScript({
-            target: { tabId: tabId },
-            world: "MAIN",
-            func: () => {
-                const ID = "__workaholic_floating_box_v1__";
-                const existing = document.getElementById(ID);
-                if (existing) {
-                    if (existing.dataset.overTimerInterval) clearInterval(existing.dataset.overTimerInterval);
-                    existing.remove();
-                    console.log("=== BOX REMOVED ===");
-                }
-            }
-        });
-        console.log(`Removed notification from tab ${tabId}`);
-    } catch (err) {
-        console.log(`Could not remove notification from tab ${tabId}:`, err.message);
-    }
-}
+// dangerZone, workTimeFloatingBox
 
 async function injectNotificationIntoTab(goalTimeFormatted, elapsedAtInject) {
     try {
@@ -143,6 +108,13 @@ chrome.alarms.onAlarm.addListener((alarm) => {
     }
 });
 
+async function showNotificationBox() {
+    const goalTimeFormatted = formatTime(timerState.goalSeconds);
+    timerState.goalTimeFormatted = goalTimeFormatted;
+    const elapsed = getElapsedSeconds(); // Get real elapsed time
+    await injectNotificationIntoTab(goalTimeFormatted, elapsed);
+}
+
 chrome.tabs.onActivated.addListener(async (_) => {
     if (timerState.goalReached && timerState.isRunning && timerState.goalTimeFormatted) {
         const elapsed = getElapsedSeconds();
@@ -188,4 +160,35 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 function getElapsedSeconds() {
     if (!timerState.isRunning || !timerState.startTime) return 0;
     return Math.floor((Date.now() - timerState.startTime) / 1000);
+}
+
+// noinspection DuplicatedCode
+function formatTime(totalSeconds) {
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = totalSeconds % 60;
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+async function removeNotificationFromTab(tabId) {
+    if (!tabId) return;
+
+    try {
+        await chrome.scripting.executeScript({
+            target: { tabId: tabId },
+            world: "MAIN",
+            func: () => {
+                const ID = "__workaholic_floating_box_v1__";
+                const existing = document.getElementById(ID);
+                if (existing) {
+                    if (existing.dataset.overTimerInterval) clearInterval(existing.dataset.overTimerInterval);
+                    existing.remove();
+                    console.log("=== BOX REMOVED ===");
+                }
+            }
+        });
+        console.log(`Removed notification from tab ${tabId}`);
+    } catch (err) {
+        console.log(`Could not remove notification from tab ${tabId}:`, err.message);
+    }
 }
