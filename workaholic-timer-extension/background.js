@@ -40,7 +40,6 @@ async function injectNotificationIntoTab(goalTimeFormatted, elapsedAtInject) {
                 span.innerHTML = `⏱ Goal time: ${goalTime} | Current time: <span id="__current_workTime__">${formatTime(initialElapsed)}</span>`;
                 box.appendChild(span);
 
-                // Check if it starts in danger zone
                 const isDanger = checkIfDangerZoneIsReached(initialElapsed, goalTime);
                 box.style.cssText = `
                     position: fixed;
@@ -151,7 +150,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         timerState.startTime = null;
         timerState.goalReached = false;
         if (timerState.lastNotificationTabId) {
-            removeNotificationFromTab(timerState.lastNotificationTabId);
+            void removeNotificationFromTab(timerState.lastNotificationTabId);
             timerState.lastNotificationTabId = null;
         }
         sendResponse({ success: true });
