@@ -30,13 +30,12 @@ async function injectNotificationIntoTab(goalTimeFormatted, elapsedAtInject) {
                 const ID = "__workTime_floating_box_v1__";
                 const existing = document.getElementById(ID);
                 if (existing) {
-                    if (existing.dataset.overTimerInterval) clearInterval(existing.dataset.overTimerInterval);
+                    if (existing.dataset.overTimerInterval) clearInterval(Number(existing.dataset.overTimerInterval));
                     existing.remove();
                 }
 
                 const box = document.createElement("div");
                 box.id = ID;
-
                 const span = document.createElement("span");
                 span.innerHTML = `⏱ Goal time: ${goalTime} | Current time: <span id="__current_workTime__">00:00:00</span>`;
                 box.appendChild(span);
@@ -56,6 +55,10 @@ async function injectNotificationIntoTab(goalTimeFormatted, elapsedAtInject) {
                     align-items: center;
                     gap: 8px;
                 `;
+
+                // if (checkIfDangerZoneIsReached(currentWorkTime, goalTime)) {
+                //     setStyleForWorkTimeFloatingBoxInDangerZone(box, currentTimeEl)
+                // }
                 document.body.appendChild(box);
 
                 const currentTimeEl = document.getElementById("__current_workTime__");
@@ -69,9 +72,9 @@ async function injectNotificationIntoTab(goalTimeFormatted, elapsedAtInject) {
                         setStyleForWorkTimeFloatingBoxInDangerZone(box, currentTimeEl)
                     }
                 }, 1000);
+                box.dataset.overTimerInterval = String(interval);
 
-                box.dataset.overTimerInterval = interval;
-
+                // noinspection DuplicatedCode
                 function formatTime(totalSeconds) {
                     const h = Math.floor(totalSeconds / 3600);
                     const m = Math.floor((totalSeconds % 3600) / 60);
@@ -186,7 +189,7 @@ async function removeNotificationFromTab(tabId) {
                 const ID = "__workTime_floating_box_v1__";
                 const existing = document.getElementById(ID);
                 if (existing) {
-                    if (existing.dataset.overTimerInterval) clearInterval(existing.dataset.overTimerInterval);
+                    if (existing.dataset.overTimerInterval) clearInterval(Number(existing.dataset.overTimerInterval));
                     existing.remove();
                 }
             }
