@@ -1,7 +1,6 @@
 const startBtn = document.getElementById("startBtn");
 const stopBtn = document.getElementById("stopBtn");
 const timerDisplay = document.getElementById("timerDisplay");
-const goalInfo = document.getElementById("goalInfo");
 const hoursInput = document.getElementById("hours");
 const minutesInput = document.getElementById("minutes");
 const secondsInput = document.getElementById("seconds");
@@ -39,7 +38,7 @@ stopBtn.addEventListener("click", async () => {
 });
 
 // Initialize on popup open
-updateUI();
+void updateUI();
 // Update every second if timer is running
 updateInterval = setInterval(updateUI, 1000);
 
@@ -48,9 +47,8 @@ async function updateUI() {
 
     if (response.isRunning) {
         const elapsed = response.elapsedSeconds;
-        timerDisplay.textContent = formatTime(elapsed);
-        goalInfo.textContent = `Goal: ${formatTime(response.goalSeconds)}`;
 
+        timerDisplay.textContent = formatTime(elapsed);
         startBtn.style.display = "none";
         stopBtn.style.display = "block";
         hoursInput.disabled = true;
@@ -58,8 +56,6 @@ async function updateUI() {
         secondsInput.disabled = true;
     } else {
         timerDisplay.textContent = "00:00:00";
-        goalInfo.textContent = "Goal: 00:00:03";
-
         startBtn.style.display = "block";
         stopBtn.style.display = "none";
         hoursInput.disabled = false;

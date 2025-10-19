@@ -16,11 +16,6 @@ function formatTime(totalSeconds) {
     return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
-function getElapsedSeconds() {
-    if (!timerState.isRunning || !timerState.startTime) return 0;
-    return Math.floor((Date.now() - timerState.startTime) / 1000);
-}
-
 async function showNotificationBox() {
     const goalTimeFormatted = formatTime(timerState.goalSeconds);
     timerState.goalTimeFormatted = goalTimeFormatted;
@@ -189,3 +184,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
     return true;
 });
+
+function getElapsedSeconds() {
+    if (!timerState.isRunning || !timerState.startTime) return 0;
+    return Math.floor((Date.now() - timerState.startTime) / 1000);
+}
