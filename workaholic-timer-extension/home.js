@@ -5,15 +5,43 @@ const goalInfo = document.getElementById("goalInfo");
 const hoursInput = document.getElementById("hours");
 const minutesInput = document.getElementById("minutes");
 const secondsInput = document.getElementById("seconds");
-
 let updateInterval = null;
 
-function formatTime(totalSeconds) {
-    const h = Math.floor(totalSeconds / 3600);
-    const m = Math.floor((totalSeconds % 3600) / 60);
-    const s = totalSeconds % 60;
-    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-}
+startBtn.addEventListener("click", async () => {
+    const hours = parseInt(hoursInput.value) || 0;
+    const minutes = parseInt(minutesInput.value) || 0;
+    const seconds = parseInt(secondsInput.value) || 0;
+    const goalSeconds = hours * 3600 + minutes * 60 + seconds;
+
+    if (goalSeconds === 0) {
+        alert("Please set a goal time greater than 0");
+        return;
+    }
+
+    await chrome.runtime.sendMessage({
+        action: "startTimer",
+        goalSeconds: goalSeconds
+    });
+
+    // noinspection ES6MissingAwait
+    updateUI();
+    updateInterval = setInterval(updateUI, 1000);
+});
+
+stopBtn.addEventListener("click", async () => {
+    await chrome.runtime.sendMessage({ action: "stopTimer" });
+
+    clearInterval(updateInterval);
+    updateInterval = null;
+
+    // noinspection ES6MissingAwait
+    updateUI();
+});
+
+// Initialize on popup open
+updateUI();
+// Update every second if timer is running
+updateInterval = setInterval(updateUI, 1000);
 
 async function updateUI() {
     const response = await chrome.runtime.sendMessage({ action: "getTimerState" });
@@ -40,42 +68,9 @@ async function updateUI() {
     }
 }
 
-startBtn.addEventListener("click", async () => {
-    const h = parseInt(hoursInput.value) || 0;
-    const m = parseInt(minutesInput.value) || 0;
-    const s = parseInt(secondsInput.value) || 0;
-    const goalSeconds = h * 3600 + m * 60 + s;
-
-    if (goalSeconds === 0) {
-        alert("Please set a goal time greater than 0");
-        return;
-    }
-
-    await chrome.runtime.sendMessage({
-        action: "startTimer",
-        goalSeconds: goalSeconds
-    });
-
-    updateUI();
-
-    // Update UI every second
-    if (updateInterval) clearInterval(updateInterval);
-    updateInterval = setInterval(updateUI, 1000);
-});
-
-stopBtn.addEventListener("click", async () => {
-    await chrome.runtime.sendMessage({ action: "stopTimer" });
-
-    if (updateInterval) {
-        clearInterval(updateInterval);
-        updateInterval = null;
-    }
-
-    updateUI();
-});
-
-// Initialize on popup open
-updateUI();
-
-// Update every second if timer is running
-updateInterval = setInterval(updateUI, 1000);
+function formatTime(totalSeconds) {
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = totalSeconds % 60;
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
