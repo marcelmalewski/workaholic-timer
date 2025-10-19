@@ -37,13 +37,16 @@ async function injectNotificationIntoTab(goalTimeFormatted, elapsedAtInject) {
                 const box = document.createElement("div");
                 box.id = ID;
                 const span = document.createElement("span");
-                span.innerHTML = `⏱ Goal time: ${goalTime} | Current time: <span id="__current_workTime__">00:00:00</span>`;
+                span.innerHTML = `⏱ Goal time: ${goalTime} | Current time: <span id="__current_workTime__">${formatTime(initialElapsed)}</span>`;
                 box.appendChild(span);
+
+                // Check if it starts in danger zone
+                const isDanger = checkIfDangerZoneIsReached(initialElapsed, goalTime);
                 box.style.cssText = `
                     position: fixed;
                     top: 20px;
                     right: 20px;
-                    background: #28a745;
+                    background: ${isDanger ? "#dc3545" : "#28a745"};
                     color: white;
                     padding: 15px 20px;
                     border-radius: 8px;
@@ -55,21 +58,25 @@ async function injectNotificationIntoTab(goalTimeFormatted, elapsedAtInject) {
                     align-items: center;
                     gap: 8px;
                 `;
-
-                // if (checkIfDangerZoneIsReached(currentWorkTime, goalTime)) {
-                //     setStyleForWorkTimeFloatingBoxInDangerZone(box, currentTimeEl)
-                // }
+                if (isDanger) {
+                    const currentTimeEl = span.querySelector("#__current_workTime__");
+                    currentTimeEl.style.fontSize = "22px";
+                    currentTimeEl.style.fontWeight = "bold";
+                }
                 document.body.appendChild(box);
 
                 const currentTimeEl = document.getElementById("__current_workTime__");
                 let currentWorkTime = initialElapsed;
                 currentTimeEl.textContent = formatTime(currentWorkTime);
+
                 const interval = setInterval(() => {
                     currentWorkTime++;
                     currentTimeEl.textContent = formatTime(currentWorkTime);
 
                     if (checkIfDangerZoneIsReached(currentWorkTime, goalTime)) {
-                        setStyleForWorkTimeFloatingBoxInDangerZone(box, currentTimeEl)
+                        box.style.background = "#dc3545";
+                        currentTimeEl.style.fontSize = "22px";
+                        currentTimeEl.style.fontWeight = "bold";
                     }
                 }, 1000);
                 box.dataset.overTimerInterval = String(interval);
@@ -87,12 +94,6 @@ async function injectNotificationIntoTab(goalTimeFormatted, elapsedAtInject) {
                         - parseInt(goalTime.split(':')[1]) * 60
                         - parseInt(goalTime.split(':')[2]) >= 5
                 }
-
-                function setStyleForWorkTimeFloatingBoxInDangerZone(box, currentTimeEl) {
-                    box.style.background = "#dc3545";
-                    currentTimeEl.style.fontSize = "22px";
-                    currentTimeEl.style.fontWeight = "bold";
-                }
             },
             args: [goalTimeFormatted, elapsedAtInject]
         });
@@ -104,14 +105,14 @@ async function injectNotificationIntoTab(goalTimeFormatted, elapsedAtInject) {
     }
 }
 
-chrome.alarms.create(alarmName, { periodInMinutes: 1 / 60 });
+void chrome.alarms.create(alarmName, { periodInMinutes: 1 / 60 });
 
 chrome.alarms.onAlarm.addListener((alarm) => {
     if (alarm.name === alarmName && timerState.isRunning) {
         const elapsed = getElapsedSeconds();
         if (!timerState.goalReached && elapsed >= timerState.goalSeconds) {
             timerState.goalReached = true;
-            showNotificationBox();
+            void showNotificationBox();
         }
     }
 });
