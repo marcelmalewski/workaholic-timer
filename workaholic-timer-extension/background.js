@@ -12,22 +12,26 @@ async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, elapsedAtInje
     try {
         if (timerState.lastNotificationTabId) {
             await removeNotificationFromTab(timerState.lastNotificationTabId);
+            timerState.lastNotificationTabId = null;
         }
 
         const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
         if (tabs.length === 0) return;
 
         const tab = tabs[0];
+        // TODO co to zmienia?
         if (!tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://') || tab.url.startsWith('edge://')) {
-            timerState.lastNotificationTabId = null;
             return;
         }
+        timerState.lastNotificationTabId = tab.id;
 
         await chrome.scripting.executeScript({
             target: { tabId: tab.id },
             world: "MAIN",
             func: (goalTime, initialElapsed) => {
                 const ID = "__workTime_floating_box_v1__";
+
+                // TODO raczej to jest obsługiwanie sytuacji która nie powinna zajść
                 const existing = document.getElementById(ID);
                 if (existing) {
                     if (existing.dataset.overTimerInterval) clearInterval(Number(existing.dataset.overTimerInterval));
@@ -97,11 +101,10 @@ async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, elapsedAtInje
             },
             args: [goalTimeFormatted, elapsedAtInject]
         });
-
-        timerState.lastNotificationTabId = tab.id;
     } catch (err) {
-        console.error("Error in injectNotificationIntoTab:", err);
+        // TODO co musi się stać by to wywołać?
         timerState.lastNotificationTabId = null;
+        alert(`Error in injectNotificationIntoTab: ${err.message}`);
     }
 }
 
@@ -123,7 +126,6 @@ async function createWorkTimeFloatingBox() {
     await injectWorkTimeFloatingBoxIntoTab(timerState.goalTimeFormatted, elapsed);
 }
 
-// TODO zrozumieć te dwie onActivated and onFocusChanged
 chrome.tabs.onActivated.addListener(async (_) => {
     if (timerState.goalReached && timerState.isRunning) {
         const elapsed = getElapsedSeconds();
@@ -200,6 +202,7 @@ async function removeNotificationFromTab(tabId) {
             }
         });
     } catch (err) {
-        console.log(`Could not remove notification from tab ${tabId}:`, err.message);
+        // TODO co musi się stać by to wywołać?
+        alert(`Could not remove notification from tab ${tabId}: ${err.message}`);
     }
 }
