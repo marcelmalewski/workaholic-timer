@@ -8,7 +8,7 @@ let timerState = {
 };
 let alarmName = "workaholicTimer";
 
-async function injectNotificationIntoTab(goalTimeFormatted, elapsedAtInject) {
+async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, elapsedAtInject) {
     try {
         if (timerState.lastNotificationTabId) {
             await removeNotificationFromTab(timerState.lastNotificationTabId);
@@ -73,6 +73,7 @@ async function injectNotificationIntoTab(goalTimeFormatted, elapsedAtInject) {
                     currentTimeEl.textContent = formatTime(currentWorkTime);
 
                     if (checkIfDangerZoneIsReached(currentWorkTime, goalTime)) {
+                        //TODO wystarczy, że wydarzy się tylko raz
                         box.style.background = "#dc3545";
                         currentTimeEl.style.fontSize = "22px";
                         currentTimeEl.style.fontWeight = "bold";
@@ -104,29 +105,29 @@ async function injectNotificationIntoTab(goalTimeFormatted, elapsedAtInject) {
     }
 }
 
-void chrome.alarms.create(alarmName, { periodInMinutes: 1 / 60 });
-
 chrome.alarms.onAlarm.addListener((alarm) => {
     if (alarm.name === alarmName && timerState.isRunning) {
         const elapsed = getElapsedSeconds();
         if (!timerState.goalReached && elapsed >= timerState.goalSeconds) {
             timerState.goalReached = true;
-            void showNotificationBox();
+            void chrome.alarms.clear(alarmName);
+            void createWorkTimeFloatingBox();
         }
     }
 });
 
-async function showNotificationBox() {
+async function createWorkTimeFloatingBox() {
     const goalTimeFormatted = formatTime(timerState.goalSeconds);
     timerState.goalTimeFormatted = goalTimeFormatted;
     const elapsed = getElapsedSeconds(); // Get real elapsed time
-    await injectNotificationIntoTab(goalTimeFormatted, elapsed);
+    await injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, elapsed);
 }
 
+// TODO zrozumieć te dwie onActivated and onFocusChanged
 chrome.tabs.onActivated.addListener(async (_) => {
     if (timerState.goalReached && timerState.isRunning && timerState.goalTimeFormatted) {
         const elapsed = getElapsedSeconds();
-        await injectNotificationIntoTab(timerState.goalTimeFormatted, elapsed);
+        await injectWorkTimeFloatingBoxIntoTab(timerState.goalTimeFormatted, elapsed);
     }
 });
 
@@ -134,7 +135,7 @@ chrome.windows.onFocusChanged.addListener(async (windowId) => {
     if (windowId === chrome.windows.WINDOW_ID_NONE) return;
     if (timerState.goalReached && timerState.isRunning && timerState.goalTimeFormatted) {
         const elapsed = getElapsedSeconds();
-        await injectNotificationIntoTab(timerState.goalTimeFormatted, elapsed);
+        await injectWorkTimeFloatingBoxIntoTab(timerState.goalTimeFormatted, elapsed);
     }
 });
 
@@ -144,11 +145,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         timerState.startTime = Date.now();
         timerState.goalSeconds = request.goalSeconds;
         timerState.goalReached = false;
+
+        void chrome.alarms.create(alarmName, { periodInMinutes: 1 / 60 });
         sendResponse({ success: true });
     } else if (request.action === "stopTimer") {
         timerState.isRunning = false;
         timerState.startTime = null;
         timerState.goalReached = false;
+
+        void chrome.alarms.clear(alarmName);
         if (timerState.lastNotificationTabId) {
             void removeNotificationFromTab(timerState.lastNotificationTabId);
             timerState.lastNotificationTabId = null;
@@ -167,15 +172,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 function getElapsedSeconds() {
     if (!timerState.isRunning || !timerState.startTime) return 0;
-    return Math.floor((Date.now() - timerState.startTime) / 1000);
+    return Math.round((Date.now() - timerState.startTime) / 1000);
 }
 
 // noinspection DuplicatedCode
 function formatTime(totalSeconds) {
-    const h = Math.floor(totalSeconds / 3600);
-    const m = Math.floor((totalSeconds % 3600) / 60);
-    const s = totalSeconds % 60;
-    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 }
 
 async function removeNotificationFromTab(tabId) {
