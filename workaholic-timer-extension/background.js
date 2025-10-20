@@ -109,7 +109,9 @@ chrome.alarms.onAlarm.addListener((alarm) => {
     if (alarm.name === alarmName && timerState.isRunning) {
         const elapsed = getElapsedSeconds();
         if (!timerState.goalReached && elapsed >= timerState.goalSeconds) {
+            timerState.goalTimeFormatted = formatTime(timerState.goalSeconds)
             timerState.goalReached = true;
+
             void chrome.alarms.clear(alarmName);
             void createWorkTimeFloatingBox();
         }
@@ -117,15 +119,13 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 });
 
 async function createWorkTimeFloatingBox() {
-    const goalTimeFormatted = formatTime(timerState.goalSeconds);
-    timerState.goalTimeFormatted = goalTimeFormatted;
-    const elapsed = getElapsedSeconds(); // Get real elapsed time
-    await injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, elapsed);
+    const elapsed = getElapsedSeconds();
+    await injectWorkTimeFloatingBoxIntoTab(timerState.goalTimeFormatted, elapsed);
 }
 
 // TODO zrozumieć te dwie onActivated and onFocusChanged
 chrome.tabs.onActivated.addListener(async (_) => {
-    if (timerState.goalReached && timerState.isRunning && timerState.goalTimeFormatted) {
+    if (timerState.goalReached && timerState.isRunning) {
         const elapsed = getElapsedSeconds();
         await injectWorkTimeFloatingBoxIntoTab(timerState.goalTimeFormatted, elapsed);
     }
@@ -133,7 +133,7 @@ chrome.tabs.onActivated.addListener(async (_) => {
 
 chrome.windows.onFocusChanged.addListener(async (windowId) => {
     if (windowId === chrome.windows.WINDOW_ID_NONE) return;
-    if (timerState.goalReached && timerState.isRunning && timerState.goalTimeFormatted) {
+    if (timerState.goalReached && timerState.isRunning) {
         const elapsed = getElapsedSeconds();
         await injectWorkTimeFloatingBoxIntoTab(timerState.goalTimeFormatted, elapsed);
     }
