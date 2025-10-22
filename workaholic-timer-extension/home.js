@@ -7,7 +7,8 @@ const secondsInput = document.getElementById('seconds');
 
 let updateInterval = null;
 
-// TODO jakieś sprawdzanie czy napewno timerState wziął dane ze storage?
+// TODO jakieś sprawdzanie czy napewno timerState wziął dane ze storage, bo czasem pierwsze wczytanie
+// TODO jest za szybko
 // Initialize home ui
 void updateUI();
 
