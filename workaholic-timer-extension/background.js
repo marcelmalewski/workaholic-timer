@@ -165,10 +165,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         sendResponse({
             isRunning: timerState.isRunning,
             elapsedSeconds: getElapsedSeconds(),
-            goalSeconds: timerState.goalSeconds,
-            goalReached: timerState.goalReached
         });
     }
+
     return true;
 });
 
