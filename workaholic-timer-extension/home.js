@@ -12,6 +12,17 @@ void updateUI();
 
 async function updateUI() {
     const response = await chrome.runtime.sendMessage({ action: 'getTimerState' });
+    if(response.goalReached) {
+        timerDisplay.textContent = '-';
+        startBtn.style.display = 'block';
+        stopBtn.style.display = 'none';
+        hoursInput.disabled = false;
+        minutesInput.disabled = false;
+        secondsInput.disabled = false;
+
+        return;
+    }
+
     if (!response.isRunning) {
         timerDisplay.textContent = '00:00:00';
         startBtn.style.display = 'block';
@@ -33,6 +44,20 @@ async function updateUI() {
 
     updateInterval = setInterval(() => {
         currentWorkTime++;
+        if(currentWorkTime === response.goalSeconds) {
+            timerDisplay.textContent = '-';
+            startBtn.style.display = 'block';
+            stopBtn.style.display = 'none';
+            hoursInput.disabled = false;
+            minutesInput.disabled = false;
+            secondsInput.disabled = false;
+
+            clearInterval(updateInterval);
+            updateInterval = null;
+
+            return;
+        }
+
         timerDisplay.textContent = formatTime(currentWorkTime);
     }, 1000);
 }
