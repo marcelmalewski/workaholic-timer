@@ -7,18 +7,19 @@ const secondsInput = document.getElementById('seconds');
 
 let updateInterval = null;
 
+// TODO jakieś sprawdzanie czy napewno timerState wziął dane ze storage?
 // Initialize home ui
 void updateUI();
 
 async function updateUI() {
     const response = await chrome.runtime.sendMessage({ action: 'getTimerState' });
     if(response.goalReached) {
-        timerDisplay.textContent = '-';
-        startBtn.style.display = 'block';
-        stopBtn.style.display = 'none';
-        hoursInput.disabled = false;
-        minutesInput.disabled = false;
-        secondsInput.disabled = false;
+        timerDisplay.textContent = 'Overtime';
+        startBtn.style.display = 'none';
+        stopBtn.style.display = 'block';
+        hoursInput.disabled = true;
+        minutesInput.disabled = true;
+        secondsInput.disabled = true;
 
         return;
     }
@@ -45,12 +46,12 @@ async function updateUI() {
     updateInterval = setInterval(() => {
         currentWorkTime++;
         if(currentWorkTime === response.goalSeconds) {
-            timerDisplay.textContent = '-';
-            startBtn.style.display = 'block';
-            stopBtn.style.display = 'none';
-            hoursInput.disabled = false;
-            minutesInput.disabled = false;
-            secondsInput.disabled = false;
+            timerDisplay.textContent = 'Overtime';
+            startBtn.style.display = 'none';
+            stopBtn.style.display = 'block';
+            hoursInput.disabled = true;
+            minutesInput.disabled = true;
+            secondsInput.disabled = true;
 
             clearInterval(updateInterval);
             updateInterval = null;

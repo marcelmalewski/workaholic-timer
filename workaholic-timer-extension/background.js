@@ -8,6 +8,16 @@ let timerState = {
 };
 let alarmName = "workaholicTimer";
 
+// Initialize timer state
+void loadTimerState();
+
+async function loadTimerState() {
+    const result = await chrome.storage.local.get('timerState');
+    if (result.timerState) {
+        timerState = result.timerState;
+    }
+}
+
 async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, elapsedAtInject) {
     try {
         if (timerState.lastNotificationTabId) {
@@ -24,6 +34,8 @@ async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, elapsedAtInje
             return;
         }
         timerState.lastNotificationTabId = tab.id;
+
+        void saveTimerState();
 
         await chrome.scripting.executeScript({
             target: { tabId: tab.id },
@@ -104,6 +116,8 @@ async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, elapsedAtInje
     } catch (err) {
         // TODO co musi się stać by to wywołać?
         timerState.lastNotificationTabId = null;
+        void saveTimerState();
+
         alert(`Error in injectNotificationIntoTab: ${err.message}`);
     }
 }
@@ -147,6 +161,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         timerState.startTime = Date.now();
         timerState.goalSeconds = request.goalSeconds;
         timerState.goalReached = false;
+        void saveTimerState();
 
         void chrome.alarms.create(alarmName, { periodInMinutes: 1 / 60 });
         sendResponse({ success: true });
@@ -160,6 +175,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             void removeNotificationFromTab(timerState.lastNotificationTabId);
             timerState.lastNotificationTabId = null;
         }
+        void saveTimerState();
+
         sendResponse({ success: true });
     } else if (request.action === "getTimerState") {
         sendResponse({
@@ -205,4 +222,9 @@ async function removeNotificationFromTab(tabId) {
         // TODO co musi się stać by to wywołać?
         alert(`Could not remove notification from tab ${tabId}: ${err.message}`);
     }
+}
+
+// Save state whenever it changes
+async function saveTimerState() {
+    await chrome.storage.local.set({ timerState });
 }
