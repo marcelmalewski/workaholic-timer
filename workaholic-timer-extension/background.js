@@ -1,4 +1,5 @@
 let timerState = {
+    timerStateLoadedFromStorage: false,
     isRunning: false,
     startTime: null,
     goalSeconds: 0,
@@ -16,6 +17,7 @@ async function loadTimerState() {
     if (result.timerState) {
         timerState = result.timerState;
     }
+    timerState.timerStateLoadedFromStorage = true;
 }
 
 async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, elapsedAtInject) {
@@ -183,7 +185,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             isRunning: timerState.isRunning,
             elapsedSeconds: getElapsedSeconds(),
             goalReached: timerState.goalReached,
-            goalSeconds: timerState.goalSeconds
+            goalSeconds: timerState.goalSeconds,
+            timerStateLoadedFromStorage: timerState.timerStateLoadedFromStorage
         });
     }
     return true;

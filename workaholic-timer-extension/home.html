@@ -8,24 +8,29 @@
 <body>
 <h3>Workaholic Timer</h3>
 
-<div class="inputs">
-    <div>
-        <label for="hours">Hours</label>
-        <input type="number" id="hours" min="0" max="23" value="0" />
-    </div>
-    <div>
-        <label for="minutes">Minutes</label>
-        <input type="number" id="minutes" min="0" max="59" value="0" />
-    </div>
-    <div>
-        <label for="seconds">Seconds</label>
-        <input type="number" id="seconds" min="0" max="59" value="3" />
-    </div>
-</div>
-<div id="timerDisplay">00:00:00</div>
+<div id="loadingMessage">Loading...</div>
 
-<button id="startBtn">Start Timer</button>
-<button id="stopBtn">Stop Timer</button>
+<div id="mainUI">
+    <div class="inputs">
+        <div>
+            <label for="hours">Hours</label>
+            <input type="number" id="hours" min="0" max="23" value="0" />
+        </div>
+        <div>
+            <label for="minutes">Minutes</label>
+            <input type="number" id="minutes" min="0" max="59" value="0" />
+        </div>
+        <div>
+            <label for="seconds">Seconds</label>
+            <input type="number" id="seconds" min="0" max="59" value="3" />
+        </div>
+    </div>
+
+    <div id="timerDisplay">00:00:00</div>
+
+    <button id="startBtn">Start Timer</button>
+    <button id="stopBtn">Stop Timer</button>
+</div>
 
 <script src="./home.js"></script>
 </body>

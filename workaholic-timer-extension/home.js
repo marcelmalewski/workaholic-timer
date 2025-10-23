@@ -4,6 +4,8 @@ const timerDisplay = document.getElementById('timerDisplay');
 const hoursInput = document.getElementById('hours');
 const minutesInput = document.getElementById('minutes');
 const secondsInput = document.getElementById('seconds');
+const loadingMessage = document.getElementById('loadingMessage');
+const mainUI = document.getElementById('mainUI');
 
 let updateInterval = null;
 
@@ -13,7 +15,11 @@ let updateInterval = null;
 void updateUI();
 
 async function updateUI() {
-    const response = await chrome.runtime.sendMessage({ action: 'getTimerState' });
+    const response = await getTimerStateWhenIsLoaded();
+
+    loadingMessage.style.display = 'none';
+    mainUI.style.display = 'block';
+
     if(response.goalReached) {
         timerDisplay.textContent = 'Overtime';
         startBtn.style.display = 'none';
@@ -62,6 +68,16 @@ async function updateUI() {
 
         timerDisplay.textContent = formatTime(currentWorkTime);
     }, 1000);
+}
+
+async function getTimerStateWhenIsLoaded() {
+    let response;
+    while (true) {
+        response = await chrome.runtime.sendMessage({ action: "getTimerState" });
+        if (response.timerStateLoadedFromStorage) break;
+        await new Promise(r => setTimeout(r, 100));
+    }
+    return response;
 }
 
 // noinspection DuplicatedCode
