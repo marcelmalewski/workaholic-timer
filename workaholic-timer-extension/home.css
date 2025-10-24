@@ -12,7 +12,7 @@ h3 {
     color: #333;
 }
 
-#loadingMessage {
+#loading-message {
     font-family: sans-serif;
     text-align: center;
     margin-top: 40px;
@@ -20,7 +20,7 @@ h3 {
     color: #555;
 }
 
-#mainUI {
+#main-content {
     display: none;
 
     .inputs {
@@ -69,22 +69,22 @@ h3 {
         transition: background 0.2s;
     }
 
-    #startBtn {
+    #start-btn {
         background: #28a745;
         color: white;
     }
 
-    #startBtn:hover {
+    #start-btn:hover {
         background: #218838;
     }
 
-    #stopBtn {
+    #stop-btn {
         background: #dc3545;
         color: white;
         display: none;
     }
 
-    #stopBtn:hover {
+    #stop-btn:hover {
         background: #c82333;
     }
 
@@ -97,12 +97,31 @@ h3 {
         opacity: 0.6;
     }
 
-    #timerDisplay {
+    #timer-display {
         margin: 20px 0;
         font-size: 42px;
         font-weight: bold;
         color: #333;
         font-variant-numeric: tabular-nums;
         letter-spacing: 2px;
+    }
+
+    .danger-zone-threshold-box {
+        margin-top: 16px;
+        font-size: 14px;
+        color: #333;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        align-items: center;
+    }
+
+    .danger-zone-threshold-box input {
+        width: 70px;
+        text-align: center;
+        padding: 6px;
+        font-size: 14px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
     }
 }

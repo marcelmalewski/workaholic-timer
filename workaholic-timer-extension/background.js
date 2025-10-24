@@ -2,9 +2,9 @@ let timerState = {
     timerStateLoadedFromStorage: false,
     isRunning: false,
     startTime: null,
-    goalSeconds: 0,
-    goalReached: false,
+    goalTime: 0,
     goalTimeFormatted: "",
+    goalReached: false,
     lastNotificationTabId: null
 };
 let alarmName = "workaholicTimer";
@@ -20,7 +20,7 @@ async function loadTimerState() {
     timerState.timerStateLoadedFromStorage = true;
 }
 
-async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, elapsedAtInject) {
+async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, workTimeAtInject, dangerZoneThreshold) {
     try {
         if (timerState.lastNotificationTabId) {
             await removeNotificationFromTab(timerState.lastNotificationTabId);
@@ -42,7 +42,7 @@ async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, elapsedAtInje
         await chrome.scripting.executeScript({
             target: { tabId: tab.id },
             world: "MAIN",
-            func: (goalTime, initialElapsed) => {
+            func: (goalTimeFormatted, workTimeAtInject, dangerZoneThreshold) => {
                 const ID = "__workTime_floating_box_v1__";
 
                 // TODO raczej to jest obsługiwanie sytuacji która nie powinna zajść
@@ -55,15 +55,15 @@ async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, elapsedAtInje
                 const box = document.createElement("div");
                 box.id = ID;
                 const span = document.createElement("span");
-                span.innerHTML = `⏱ Goal time: ${goalTime} | Current time: <span id="__current_workTime__">${formatTime(initialElapsed)}</span>`;
+                span.innerHTML = `⏱ Goal time: ${goalTimeFormatted} | Current time: <span id="__current_workTime__">${formatTime(workTimeAtInject)}</span>`;
                 box.appendChild(span);
 
-                const isDanger = checkIfDangerZoneIsReached(initialElapsed, goalTime);
+                const inDangerZone = workTimeAtInject >= dangerZoneThreshold;
                 box.style.cssText = `
                     position: fixed;
                     top: 20px;
                     right: 20px;
-                    background: ${isDanger ? "#dc3545" : "#28a745"};
+                    background: ${inDangerZone ? "#dc3545" : "#28a745"};
                     color: white;
                     padding: 15px 20px;
                     border-radius: 8px;
@@ -75,7 +75,7 @@ async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, elapsedAtInje
                     align-items: center;
                     gap: 8px;
                 `;
-                if (isDanger) {
+                if (inDangerZone) {
                     const currentTimeEl = span.querySelector("#__current_workTime__");
                     currentTimeEl.style.fontSize = "22px";
                     currentTimeEl.style.fontWeight = "bold";
@@ -83,14 +83,14 @@ async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, elapsedAtInje
                 document.body.appendChild(box);
 
                 const currentTimeEl = document.getElementById("__current_workTime__");
-                let currentWorkTime = initialElapsed;
+                let currentWorkTime = workTimeAtInject;
                 currentTimeEl.textContent = formatTime(currentWorkTime);
 
                 const interval = setInterval(() => {
                     currentWorkTime++;
                     currentTimeEl.textContent = formatTime(currentWorkTime);
 
-                    if (checkIfDangerZoneIsReached(currentWorkTime, goalTime)) {
+                    if (currentWorkTime >= dangerZoneThreshold) {
                         //TODO wystarczy, że wydarzy się tylko raz
                         box.style.background = "#dc3545";
                         currentTimeEl.style.fontSize = "22px";
@@ -106,14 +106,8 @@ async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, elapsedAtInje
                     const s = totalSeconds % 60;
                     return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
                 }
-
-                function checkIfDangerZoneIsReached(currentWorkTime, goalTime) {
-                    return currentWorkTime - parseInt(goalTime.split(':')[0]) * 3600
-                        - parseInt(goalTime.split(':')[1]) * 60
-                        - parseInt(goalTime.split(':')[2]) >= 5
-                }
             },
-            args: [goalTimeFormatted, elapsedAtInject]
+            args: [goalTimeFormatted, workTimeAtInject, dangerZoneThreshold]
         });
     } catch (err) {
         // TODO co musi się stać by to wywołać?
@@ -126,9 +120,9 @@ async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, elapsedAtInje
 
 chrome.alarms.onAlarm.addListener((alarm) => {
     if (alarm.name === alarmName && timerState.isRunning) {
-        const elapsed = getElapsedSeconds();
-        if (!timerState.goalReached && elapsed >= timerState.goalSeconds) {
-            timerState.goalTimeFormatted = formatTime(timerState.goalSeconds)
+        const currentWorkTime = getCurrentWorkTime();
+        if (!timerState.goalReached && currentWorkTime >= timerState.goalTime) {
+            timerState.goalTimeFormatted = formatTime(timerState.goalTime)
             timerState.goalReached = true;
 
             void chrome.alarms.clear(alarmName);
@@ -138,22 +132,19 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 });
 
 async function createWorkTimeFloatingBox() {
-    const elapsed = getElapsedSeconds();
-    await injectWorkTimeFloatingBoxIntoTab(timerState.goalTimeFormatted, elapsed);
+    await injectWorkTimeFloatingBoxIntoTab(timerState.goalTimeFormatted, getCurrentWorkTime(), timerState.dangerZoneThreshold);
 }
 
 chrome.tabs.onActivated.addListener(async (_) => {
     if (timerState.goalReached && timerState.isRunning) {
-        const elapsed = getElapsedSeconds();
-        await injectWorkTimeFloatingBoxIntoTab(timerState.goalTimeFormatted, elapsed);
+        await injectWorkTimeFloatingBoxIntoTab(timerState.goalTimeFormatted, getCurrentWorkTime(), timerState.dangerZoneThreshold);
     }
 });
 
 chrome.windows.onFocusChanged.addListener(async (windowId) => {
     if (windowId === chrome.windows.WINDOW_ID_NONE) return;
     if (timerState.goalReached && timerState.isRunning) {
-        const elapsed = getElapsedSeconds();
-        await injectWorkTimeFloatingBoxIntoTab(timerState.goalTimeFormatted, elapsed);
+        await injectWorkTimeFloatingBoxIntoTab(timerState.goalTimeFormatted, getCurrentWorkTime(), timerState.dangerZoneThreshold);
     }
 });
 
@@ -161,8 +152,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "startTimer") {
         timerState.isRunning = true;
         timerState.startTime = Date.now();
-        timerState.goalSeconds = request.goalSeconds;
+        timerState.goalTime = request.goalTime;
         timerState.goalReached = false;
+        timerState.dangerZoneThreshold = request.dangerZoneThreshold
         void saveTimerState();
 
         void chrome.alarms.create(alarmName, { periodInMinutes: 1 / 60 });
@@ -183,25 +175,25 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     } else if (request.action === "getTimerState") {
         sendResponse({
             isRunning: timerState.isRunning,
-            elapsedSeconds: getElapsedSeconds(),
+            elapsedSeconds: getCurrentWorkTime(),
             goalReached: timerState.goalReached,
-            goalSeconds: timerState.goalSeconds,
+            goalTime: timerState.goalTime,
             timerStateLoadedFromStorage: timerState.timerStateLoadedFromStorage
         });
     }
     return true;
 });
 
-function getElapsedSeconds() {
+function getCurrentWorkTime() {
     if (!timerState.isRunning || !timerState.startTime) return 0;
     return Math.round((Date.now() - timerState.startTime) / 1000);
 }
 
 // noinspection DuplicatedCode
-function formatTime(totalSeconds) {
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
+function formatTime(workTime) {
+    const hours = Math.floor(workTime / 3600);
+    const minutes = Math.floor((workTime % 3600) / 60);
+    const seconds = workTime % 60;
     return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 }
 

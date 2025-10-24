@@ -1,16 +1,15 @@
-const startBtn = document.getElementById('startBtn');
-const stopBtn = document.getElementById('stopBtn');
-const timerDisplay = document.getElementById('timerDisplay');
-const hoursInput = document.getElementById('hours');
-const minutesInput = document.getElementById('minutes');
-const secondsInput = document.getElementById('seconds');
-const loadingMessage = document.getElementById('loadingMessage');
-const mainUI = document.getElementById('mainUI');
+const startBtn = document.getElementById('start-btn');
+const stopBtn = document.getElementById('stop-btn');
+const timerDisplay = document.getElementById('timer-display');
+const hours = document.getElementById('hours');
+const minutes = document.getElementById('minutes');
+const seconds = document.getElementById('seconds');
+const dangerZoneThreshold = document.getElementById('danger-zone-threshold');
+const loadingMessage = document.getElementById('loading-message');
+const mainContent = document.getElementById('main-content');
 
 let updateInterval = null;
 
-// TODO jakieś sprawdzanie czy napewno timerState wziął dane ze storage, bo czasem pierwsze wczytanie
-// TODO jest za szybko
 // Initialize home ui
 void updateUI();
 
@@ -18,15 +17,15 @@ async function updateUI() {
     const response = await getTimerStateWhenIsLoaded();
 
     loadingMessage.style.display = 'none';
-    mainUI.style.display = 'block';
+    mainContent.style.display = 'block';
 
     if(response.goalReached) {
         timerDisplay.textContent = 'Overtime';
         startBtn.style.display = 'none';
         stopBtn.style.display = 'block';
-        hoursInput.disabled = true;
-        minutesInput.disabled = true;
-        secondsInput.disabled = true;
+        hours.disabled = true;
+        minutes.disabled = true;
+        seconds.disabled = true;
 
         return;
     }
@@ -35,9 +34,9 @@ async function updateUI() {
         timerDisplay.textContent = '00:00:00';
         startBtn.style.display = 'block';
         stopBtn.style.display = 'none';
-        hoursInput.disabled = false;
-        minutesInput.disabled = false;
-        secondsInput.disabled = false;
+        hours.disabled = false;
+        minutes.disabled = false;
+        seconds.disabled = false;
 
         return;
     }
@@ -46,19 +45,19 @@ async function updateUI() {
     timerDisplay.textContent = formatTime(currentWorkTime);
     startBtn.style.display = 'none';
     stopBtn.style.display = 'block';
-    hoursInput.disabled = true;
-    minutesInput.disabled = true;
-    secondsInput.disabled = true;
+    hours.disabled = true;
+    minutes.disabled = true;
+    seconds.disabled = true;
 
     updateInterval = setInterval(() => {
         currentWorkTime++;
-        if(currentWorkTime === response.goalSeconds) {
+        if(currentWorkTime === response.goalTime) {
             timerDisplay.textContent = 'Overtime';
             startBtn.style.display = 'none';
             stopBtn.style.display = 'block';
-            hoursInput.disabled = true;
-            minutesInput.disabled = true;
-            secondsInput.disabled = true;
+            hours.disabled = true;
+            minutes.disabled = true;
+            seconds.disabled = true;
 
             clearInterval(updateInterval);
             updateInterval = null;
@@ -82,26 +81,33 @@ async function getTimerStateWhenIsLoaded() {
 
 // noinspection DuplicatedCode
 function formatTime(totalSeconds) {
-    const h = Math.floor(totalSeconds / 3600);
-    const m = Math.floor((totalSeconds % 3600) / 60);
-    const s = totalSeconds % 60;
-    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 }
 
 startBtn.addEventListener('click', async () => {
-    const hours = parseInt(hoursInput.value) || 0;
-    const minutes = parseInt(minutesInput.value) || 0;
-    const seconds = parseInt(secondsInput.value) || 0;
-    const goalSeconds = hours * 3600 + minutes * 60 + seconds;
+    const hoursValue = parseInt(hours.value) || 0;
+    const minutesValue = parseInt(minutes.value) || 0;
+    const secondsValue = parseInt(seconds.value) || 0;
+    const goalTime = hoursValue * 3600 + minutesValue * 60 + secondsValue;
 
-    if (goalSeconds === 0) {
+    if (goalTime === 0) {
         alert('Please set a goal time greater than 0');
+        return;
+    }
+
+    const dangerZoneThresholdValue = parseInt(dangerZoneThreshold.value) || 0;
+    if (goalTime < dangerZoneThreshold) {
+        alert('Please set danger zone threshold greater than goal time');
         return;
     }
 
     chrome.runtime.sendMessage({
         action: 'startTimer',
-        goalSeconds: goalSeconds,
+        goalTime,
+        dangerZoneThreshold: dangerZoneThresholdValue
     }).then(() => {
         void updateUI();
     })

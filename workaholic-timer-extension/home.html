@@ -8,9 +8,9 @@
 <body>
 <h3>Workaholic Timer</h3>
 
-<div id="loadingMessage">Loading...</div>
+<div id="loading-message">Loading...</div>
 
-<div id="mainUI">
+<div id="main-content">
     <div class="inputs">
         <div>
             <label for="hours">Hours</label>
@@ -26,10 +26,15 @@
         </div>
     </div>
 
-    <div id="timerDisplay">00:00:00</div>
+    <div id="timer-display">00:00:00</div>
 
-    <button id="startBtn">Start Timer</button>
-    <button id="stopBtn">Stop Timer</button>
+    <button id="start-btn">Start Timer</button>
+    <button id="stop-btn">Stop Timer</button>
+
+    <div class="danger-zone-threshold-box">
+        <label for="danger-zone-threshold">Danger Zone Threshold (seconds)</label>
+        <input type="number" id="danger-zone-threshold" min="1" value="5" />
+    </div>
 </div>
 
 <script src="./home.js"></script>
