@@ -22,38 +22,29 @@ async function loadTimerState() {
 
 async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, workTimeAtInject, dangerZoneThreshold) {
     try {
-        if (timerState.lastNotificationTabId) {
-            await removeNotificationFromTab(timerState.lastNotificationTabId);
-            timerState.lastNotificationTabId = null;
-        }
-
         const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
         if (tabs.length === 0) return;
-
         const tab = tabs[0];
+
         // TODO co to zmienia?
         if (!tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://') || tab.url.startsWith('edge://')) {
             return;
         }
-        timerState.lastNotificationTabId = tab.id;
 
+        if(timerState.lastNotificationTabId === tab.id) {
+            return;
+        }
+
+        await removeNotificationFromTab(timerState.lastNotificationTabId);
+        timerState.lastNotificationTabId = tab.id;
         void saveTimerState();
 
         await chrome.scripting.executeScript({
             target: { tabId: tab.id },
             world: "MAIN",
             func: (goalTimeFormatted, workTimeAtInject, dangerZoneThreshold) => {
-                const ID = "__workTime_floating_box_v1__";
-
-                // TODO raczej to jest obsługiwanie sytuacji która nie powinna zajść
-                const existing = document.getElementById(ID);
-                if (existing) {
-                    if (existing.dataset.overTimerInterval) clearInterval(Number(existing.dataset.overTimerInterval));
-                    existing.remove();
-                }
-
                 const box = document.createElement("div");
-                box.id = ID;
+                box.id = "__workTime_floating_box_v1__";
                 const span = document.createElement("span");
                 span.innerHTML = `⏱ Goal time: ${goalTimeFormatted} | Current time: <span id="__current_workTime__">${formatTime(workTimeAtInject)}</span>`;
                 box.appendChild(span);
@@ -110,7 +101,6 @@ async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, workTimeAtInj
             args: [goalTimeFormatted, workTimeAtInject, dangerZoneThreshold]
         });
     } catch (err) {
-        // TODO co musi się stać by to wywołać?
         timerState.lastNotificationTabId = null;
         void saveTimerState();
 
@@ -205,8 +195,8 @@ async function removeNotificationFromTab(tabId) {
             target: { tabId: tabId },
             world: "MAIN",
             func: () => {
-                const ID = "__workTime_floating_box_v1__";
-                const existing = document.getElementById(ID);
+                const workTimeFloatingBoxId = "__workTime_floating_box_v1__";
+                const existing = document.getElementById(workTimeFloatingBoxId);
                 if (existing) {
                     if (existing.dataset.overTimerInterval) clearInterval(Number(existing.dataset.overTimerInterval));
                     existing.remove();
@@ -214,7 +204,6 @@ async function removeNotificationFromTab(tabId) {
             }
         });
     } catch (err) {
-        // TODO co musi się stać by to wywołać?
         alert(`Could not remove notification from tab ${tabId}: ${err.message}`);
     }
 }
