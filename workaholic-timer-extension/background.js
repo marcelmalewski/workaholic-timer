@@ -165,7 +165,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     } else if (request.action === 'getTimerState') {
         sendResponse({
             isRunning: timerState.isRunning,
-            elapsedSeconds: getCurrentWorkTime(),
+            currentWorkTime: getCurrentWorkTime(),
             goalReached: timerState.goalReached,
             goalTime: timerState.goalTime,
             timerStateLoadedFromStorage: timerState.timerStateLoadedFromStorage,
