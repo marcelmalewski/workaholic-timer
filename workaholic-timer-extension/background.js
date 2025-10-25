@@ -2,9 +2,10 @@ let timerState = {
     timerStateLoadedFromStorage: false,
     isRunning: false,
     startTime: null,
-    goalTime: 0,
-    goalTimeFormatted: '',
+    goalTime: null,
+    goalTimeFormatted: null,
     goalReached: false,
+    dangerZoneThreshold: null,
     lastNotificationTabId: null,
 };
 let alarmName = 'workaholicTimer';
@@ -26,16 +27,16 @@ async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, workTimeAtInj
         if (tabs.length === 0) return;
         const tab = tabs[0];
 
-        // TODO co to zmienia?
-        if (!tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://') || tab.url.startsWith('edge://')) {
+        if (!tab.url || tab.url.startsWith('chrome://')) {
             return;
         }
-
         if (timerState.lastNotificationTabId === tab.id) {
             return;
         }
+        if (timerState.lastNotificationTabId) {
+            await removeNotificationFromTab(timerState.lastNotificationTabId);
+        }
 
-        await removeNotificationFromTab(timerState.lastNotificationTabId);
         timerState.lastNotificationTabId = tab.id;
         void saveTimerState();
 
@@ -43,6 +44,8 @@ async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, workTimeAtInj
             target: { tabId: tab.id },
             world: 'MAIN',
             func: (goalTimeFormatted, workTimeAtInject, dangerZoneThreshold) => {
+                let dangerZoneThresholdReached = false;
+
                 const box = document.createElement('div');
                 box.id = '__workTime_floating_box_v1__';
                 const span = document.createElement('span');
@@ -70,6 +73,8 @@ async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, workTimeAtInj
                     const currentTimeEl = span.querySelector('#__current_workTime__');
                     currentTimeEl.style.fontSize = '22px';
                     currentTimeEl.style.fontWeight = 'bold';
+
+                    dangerZoneThresholdReached = true;
                 }
                 document.body.appendChild(box);
 
@@ -77,18 +82,19 @@ async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, workTimeAtInj
                 let currentWorkTime = workTimeAtInject;
                 currentTimeEl.textContent = formatTime(currentWorkTime);
 
-                const interval = setInterval(() => {
+                const workTimeInterval = setInterval(() => {
                     currentWorkTime++;
                     currentTimeEl.textContent = formatTime(currentWorkTime);
 
-                    if (currentWorkTime >= dangerZoneThreshold) {
-                        //TODO wystarczy, że wydarzy się tylko raz
+                    if (currentWorkTime >= dangerZoneThreshold && !dangerZoneThresholdReached) {
                         box.style.background = '#dc3545';
                         currentTimeEl.style.fontSize = '22px';
                         currentTimeEl.style.fontWeight = 'bold';
+
+                        dangerZoneThresholdReached = true;
                     }
                 }, 1000);
-                box.dataset.overTimerInterval = String(interval);
+                box.dataset.workTimeInterval = String(workTimeInterval);
 
                 // noinspection DuplicatedCode
                 function formatTime(totalSeconds) {
@@ -103,38 +109,33 @@ async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, workTimeAtInj
     } catch (err) {
         timerState.lastNotificationTabId = null;
         void saveTimerState();
-
-        alert(`Error in injectNotificationIntoTab: ${err.message}`);
+        console.error(`Error in injectNotificationIntoTab: ${err}`);
     }
 }
 
 chrome.alarms.onAlarm.addListener((alarm) => {
-    if (alarm.name === alarmName && timerState.isRunning) {
+    if (alarm.name === alarmName) {
         const currentWorkTime = getCurrentWorkTime();
-        if (!timerState.goalReached && currentWorkTime >= timerState.goalTime) {
+        if (currentWorkTime >= 3) {
             timerState.goalTimeFormatted = formatTime(timerState.goalTime);
             timerState.goalReached = true;
 
             void chrome.alarms.clear(alarmName);
-            void createWorkTimeFloatingBox();
+            void injectWorkTimeFloatingBoxIntoTab(timerState.goalTimeFormatted, getCurrentWorkTime(), timerState.dangerZoneThreshold);
         }
     }
 });
 
-async function createWorkTimeFloatingBox() {
-    await injectWorkTimeFloatingBoxIntoTab(timerState.goalTimeFormatted, getCurrentWorkTime(), timerState.dangerZoneThreshold);
-}
-
-chrome.tabs.onActivated.addListener(async (_) => {
+chrome.tabs.onActivated.addListener((_) => {
     if (timerState.goalReached && timerState.isRunning) {
-        await injectWorkTimeFloatingBoxIntoTab(timerState.goalTimeFormatted, getCurrentWorkTime(), timerState.dangerZoneThreshold);
+        void injectWorkTimeFloatingBoxIntoTab(timerState.goalTimeFormatted, getCurrentWorkTime(), timerState.dangerZoneThreshold);
     }
 });
 
-chrome.windows.onFocusChanged.addListener(async (windowId) => {
+chrome.windows.onFocusChanged.addListener((windowId) => {
     if (windowId === chrome.windows.WINDOW_ID_NONE) return;
     if (timerState.goalReached && timerState.isRunning) {
-        await injectWorkTimeFloatingBoxIntoTab(timerState.goalTimeFormatted, getCurrentWorkTime(), timerState.dangerZoneThreshold);
+        void injectWorkTimeFloatingBoxIntoTab(timerState.goalTimeFormatted, getCurrentWorkTime(), timerState.dangerZoneThreshold);
     }
 });
 
@@ -145,14 +146,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         timerState.goalTime = request.goalTime;
         timerState.goalReached = false;
         timerState.dangerZoneThreshold = request.dangerZoneThreshold;
-        void saveTimerState();
 
+        void saveTimerState();
         void chrome.alarms.create(alarmName, { periodInMinutes: 1 / 60 });
+
         sendResponse({ success: true });
     } else if (request.action === 'stopTimer') {
         timerState.isRunning = false;
         timerState.startTime = null;
+        timerState.goalTime = null;
         timerState.goalReached = false;
+        timerState.dangerZoneThreshold = null;
 
         void chrome.alarms.clear(alarmName);
         if (timerState.lastNotificationTabId) {
@@ -166,8 +170,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         sendResponse({
             isRunning: timerState.isRunning,
             currentWorkTime: getCurrentWorkTime(),
-            goalReached: timerState.goalReached,
             goalTime: timerState.goalTime,
+            goalReached: timerState.goalReached,
             timerStateLoadedFromStorage: timerState.timerStateLoadedFromStorage,
         });
     }
@@ -175,7 +179,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 function getCurrentWorkTime() {
-    if (!timerState.isRunning || !timerState.startTime) return 0;
+    if (!timerState.isRunning) return 0;
     return Math.round((Date.now() - timerState.startTime) / 1000);
 }
 
@@ -188,27 +192,24 @@ function formatTime(timeInSeconds) {
 }
 
 async function removeNotificationFromTab(tabId) {
-    if (!tabId) return;
-
     try {
         await chrome.scripting.executeScript({
             target: { tabId: tabId },
             world: 'MAIN',
             func: () => {
                 const workTimeFloatingBoxId = '__workTime_floating_box_v1__';
-                const existing = document.getElementById(workTimeFloatingBoxId);
-                if (existing) {
-                    if (existing.dataset.overTimerInterval) clearInterval(Number(existing.dataset.overTimerInterval));
-                    existing.remove();
+                const workTimeFloatingBox = document.getElementById(workTimeFloatingBoxId);
+                if (workTimeFloatingBox) {
+                    if (workTimeFloatingBox.dataset.workTimeInterval) clearInterval(Number(workTimeFloatingBox.dataset.workTimeInterval));
+                    workTimeFloatingBox.remove();
                 }
             },
         });
     } catch (err) {
-        alert(`Could not remove notification from tab ${tabId}: ${err.message}`);
+        console.error(`Could not remove notification from tab ${tabId}:`, err);
     }
 }
 
-// Save state whenever it changes
 async function saveTimerState() {
     await chrome.storage.local.set({ timerState });
 }
