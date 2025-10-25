@@ -2,8 +2,8 @@ const startBtn = document.getElementById('start-btn');
 const stopBtn = document.getElementById('stop-btn');
 const timerDisplay = document.getElementById('timer-display');
 
-const workTimeHours = document.getElementById('work-time-hours');
-const workTimeMinutes = document.getElementById('work-time-minutes');
+const goalTimeHours = document.getElementById('goal-time-hours');
+const goalTimeMinutes = document.getElementById('goal-time-minutes');
 const dangerZoneThresholdHours = document.getElementById('danger-zone-threshold-hours');
 const dangerZoneThresholdMinutes = document.getElementById('danger-zone-threshold-minutes');
 
@@ -25,8 +25,10 @@ async function updateUI() {
         timerDisplay.textContent = 'Overtime';
         startBtn.style.display = 'none';
         stopBtn.style.display = 'block';
-        workTimeHours.disabled = true;
-        workTimeMinutes.disabled = true;
+        goalTimeHours.disabled = true;
+        goalTimeMinutes.disabled = true;
+        dangerZoneThresholdHours.disabled = true;
+        dangerZoneThresholdMinutes.disabled = true;
 
         return;
     }
@@ -35,8 +37,10 @@ async function updateUI() {
         timerDisplay.textContent = '00:00:00';
         startBtn.style.display = 'block';
         stopBtn.style.display = 'none';
-        workTimeHours.disabled = false;
-        workTimeMinutes.disabled = false;
+        goalTimeHours.disabled = false;
+        goalTimeMinutes.disabled = false;
+        dangerZoneThresholdHours.disabled = false;
+        dangerZoneThresholdMinutes.disabled = false;
 
         return;
     }
@@ -45,17 +49,22 @@ async function updateUI() {
     timerDisplay.textContent = formatTime(currentWorkTime);
     startBtn.style.display = 'none';
     stopBtn.style.display = 'block';
-    workTimeHours.disabled = true;
-    workTimeMinutes.disabled = true;
+    goalTimeHours.disabled = true;
+    goalTimeMinutes.disabled = true;
+    dangerZoneThresholdHours.disabled = true;
+    dangerZoneThresholdMinutes.disabled = true;
 
     updateInterval = setInterval(() => {
         currentWorkTime++;
         if (currentWorkTime === response.goalTime) {
+            // TODO to może zadziać się tylko raz
             timerDisplay.textContent = 'Overtime';
             startBtn.style.display = 'none';
             stopBtn.style.display = 'block';
-            workTimeHours.disabled = true;
-            workTimeMinutes.disabled = true;
+            goalTimeHours.disabled = true;
+            goalTimeMinutes.disabled = true;
+            dangerZoneThresholdHours.disabled = true;
+            dangerZoneThresholdMinutes.disabled = true;
 
             clearInterval(updateInterval);
             updateInterval = null;
@@ -86,9 +95,9 @@ function formatTime(totalSeconds) {
 }
 
 startBtn.addEventListener('click', async () => {
-    const workTimeHoursValue = parseInt(workTimeHours.value) || 0;
-    const workTimeMinutesValue = parseInt(workTimeMinutes.value) || 0;
-    const goalTime = workTimeHoursValue * 3600 + workTimeMinutesValue * 60;
+    const goalTimeHoursValue = parseInt(goalTimeHours.value) || 0;
+    const goalTimeMinutesValue = parseInt(goalTimeMinutes.value) || 0;
+    const goalTime = goalTimeHoursValue * 3600 + goalTimeMinutesValue * 60;
 
     if (goalTime === 0) {
         alert('Please set a goal time greater than 0');
@@ -99,7 +108,7 @@ startBtn.addEventListener('click', async () => {
     const dangerZoneThresholdMinutesValue = parseInt(dangerZoneThresholdMinutes.value) || 0;
     const dangerZoneThreshold = dangerZoneThresholdHoursValue * 3600 + dangerZoneThresholdMinutesValue * 60;
 
-    if (goalTime < dangerZoneThreshold) {
+    if (goalTime > dangerZoneThreshold) {
         alert('Please set danger zone threshold greater than goal time');
         return;
     }

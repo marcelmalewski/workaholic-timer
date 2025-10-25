@@ -18,48 +18,60 @@ body {
 }
 
 .input-section {
-    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
 }
 
 .section-label {
-    display: block;
     font-size: 15px;
     font-weight: 600;
-    margin-bottom: 8px;
     color: #333;
+    text-align: left;
+    flex-shrink: 0;
+    width: 120px;
 }
 
 .inputs {
     display: flex;
-    gap: 12px;
+    gap: 10px;
     align-items: center;
-    justify-content: center;
 }
 
 .inputs > div {
     display: flex;
     flex-direction: column;
+    align-items: center;
     gap: 4px;
 }
 
 .inputs label {
-    font-size: 13px;
+    font-size: 12px;
     color: #666;
-    font-weight: 500;
 }
 
 input {
-    width: 70px;
+    width: 60px;
     text-align: center;
-    padding: 10px;
+    padding: 6px;
     border: 1px solid #ddd;
     border-radius: 4px;
-    font-size: 16px;
+    font-size: 15px;
 }
 
 input:disabled {
     background: #f5f5f5;
     color: #999;
+}
+
+#timer-display {
+    margin: 20px 0;
+    font-size: 42px;
+    font-weight: bold;
+    color: #333;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 2px;
 }
 
 button {
@@ -100,13 +112,4 @@ button:active {
 button:disabled {
     cursor: not-allowed;
     opacity: 0.6;
-}
-
-#timer-display {
-    margin: 20px 0;
-    font-size: 42px;
-    font-weight: bold;
-    color: #333;
-    font-variant-numeric: tabular-nums;
-    letter-spacing: 2px;
 }
