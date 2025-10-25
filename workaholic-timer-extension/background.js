@@ -3,11 +3,11 @@ let timerState = {
     isRunning: false,
     startTime: null,
     goalTime: 0,
-    goalTimeFormatted: "",
+    goalTimeFormatted: '',
     goalReached: false,
-    lastNotificationTabId: null
+    lastNotificationTabId: null,
 };
-let alarmName = "workaholicTimer";
+let alarmName = 'workaholicTimer';
 
 // Initialize timer state
 void loadTimerState();
@@ -31,7 +31,7 @@ async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, workTimeAtInj
             return;
         }
 
-        if(timerState.lastNotificationTabId === tab.id) {
+        if (timerState.lastNotificationTabId === tab.id) {
             return;
         }
 
@@ -41,11 +41,11 @@ async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, workTimeAtInj
 
         await chrome.scripting.executeScript({
             target: { tabId: tab.id },
-            world: "MAIN",
+            world: 'MAIN',
             func: (goalTimeFormatted, workTimeAtInject, dangerZoneThreshold) => {
-                const box = document.createElement("div");
-                box.id = "__workTime_floating_box_v1__";
-                const span = document.createElement("span");
+                const box = document.createElement('div');
+                box.id = '__workTime_floating_box_v1__';
+                const span = document.createElement('span');
                 span.innerHTML = `⏱ Goal time: ${goalTimeFormatted} | Current time: <span id="__current_workTime__">${formatTime(workTimeAtInject)}</span>`;
                 box.appendChild(span);
 
@@ -54,7 +54,7 @@ async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, workTimeAtInj
                     position: fixed;
                     top: 20px;
                     right: 20px;
-                    background: ${inDangerZone ? "#dc3545" : "#28a745"};
+                    background: ${inDangerZone ? '#dc3545' : '#28a745'};
                     color: white;
                     padding: 15px 20px;
                     border-radius: 8px;
@@ -67,13 +67,13 @@ async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, workTimeAtInj
                     gap: 8px;
                 `;
                 if (inDangerZone) {
-                    const currentTimeEl = span.querySelector("#__current_workTime__");
-                    currentTimeEl.style.fontSize = "22px";
-                    currentTimeEl.style.fontWeight = "bold";
+                    const currentTimeEl = span.querySelector('#__current_workTime__');
+                    currentTimeEl.style.fontSize = '22px';
+                    currentTimeEl.style.fontWeight = 'bold';
                 }
                 document.body.appendChild(box);
 
-                const currentTimeEl = document.getElementById("__current_workTime__");
+                const currentTimeEl = document.getElementById('__current_workTime__');
                 let currentWorkTime = workTimeAtInject;
                 currentTimeEl.textContent = formatTime(currentWorkTime);
 
@@ -83,9 +83,9 @@ async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, workTimeAtInj
 
                     if (currentWorkTime >= dangerZoneThreshold) {
                         //TODO wystarczy, że wydarzy się tylko raz
-                        box.style.background = "#dc3545";
-                        currentTimeEl.style.fontSize = "22px";
-                        currentTimeEl.style.fontWeight = "bold";
+                        box.style.background = '#dc3545';
+                        currentTimeEl.style.fontSize = '22px';
+                        currentTimeEl.style.fontWeight = 'bold';
                     }
                 }, 1000);
                 box.dataset.overTimerInterval = String(interval);
@@ -95,10 +95,10 @@ async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, workTimeAtInj
                     const h = Math.floor(totalSeconds / 3600);
                     const m = Math.floor((totalSeconds % 3600) / 60);
                     const s = totalSeconds % 60;
-                    return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+                    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
                 }
             },
-            args: [goalTimeFormatted, workTimeAtInject, dangerZoneThreshold]
+            args: [goalTimeFormatted, workTimeAtInject, dangerZoneThreshold],
         });
     } catch (err) {
         timerState.lastNotificationTabId = null;
@@ -112,7 +112,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
     if (alarm.name === alarmName && timerState.isRunning) {
         const currentWorkTime = getCurrentWorkTime();
         if (!timerState.goalReached && currentWorkTime >= timerState.goalTime) {
-            timerState.goalTimeFormatted = formatTime(timerState.goalTime)
+            timerState.goalTimeFormatted = formatTime(timerState.goalTime);
             timerState.goalReached = true;
 
             void chrome.alarms.clear(alarmName);
@@ -139,17 +139,17 @@ chrome.windows.onFocusChanged.addListener(async (windowId) => {
 });
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.action === "startTimer") {
+    if (request.action === 'startTimer') {
         timerState.isRunning = true;
         timerState.startTime = Date.now();
         timerState.goalTime = request.goalTime;
         timerState.goalReached = false;
-        timerState.dangerZoneThreshold = request.dangerZoneThreshold
+        timerState.dangerZoneThreshold = request.dangerZoneThreshold;
         void saveTimerState();
 
         void chrome.alarms.create(alarmName, { periodInMinutes: 1 / 60 });
         sendResponse({ success: true });
-    } else if (request.action === "stopTimer") {
+    } else if (request.action === 'stopTimer') {
         timerState.isRunning = false;
         timerState.startTime = null;
         timerState.goalReached = false;
@@ -162,13 +162,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         void saveTimerState();
 
         sendResponse({ success: true });
-    } else if (request.action === "getTimerState") {
+    } else if (request.action === 'getTimerState') {
         sendResponse({
             isRunning: timerState.isRunning,
             elapsedSeconds: getCurrentWorkTime(),
             goalReached: timerState.goalReached,
             goalTime: timerState.goalTime,
-            timerStateLoadedFromStorage: timerState.timerStateLoadedFromStorage
+            timerStateLoadedFromStorage: timerState.timerStateLoadedFromStorage,
         });
     }
     return true;
@@ -193,15 +193,15 @@ async function removeNotificationFromTab(tabId) {
     try {
         await chrome.scripting.executeScript({
             target: { tabId: tabId },
-            world: "MAIN",
+            world: 'MAIN',
             func: () => {
-                const workTimeFloatingBoxId = "__workTime_floating_box_v1__";
+                const workTimeFloatingBoxId = '__workTime_floating_box_v1__';
                 const existing = document.getElementById(workTimeFloatingBoxId);
                 if (existing) {
                     if (existing.dataset.overTimerInterval) clearInterval(Number(existing.dataset.overTimerInterval));
                     existing.remove();
                 }
-            }
+            },
         });
     } catch (err) {
         alert(`Could not remove notification from tab ${tabId}: ${err.message}`);

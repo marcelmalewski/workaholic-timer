@@ -6,12 +6,6 @@ body {
     margin: 0;
 }
 
-h3 {
-    margin: 0 0 12px 0;
-    font-size: 18px;
-    color: #333;
-}
-
 #loading-message {
     font-family: sans-serif;
     text-align: center;

@@ -6,23 +6,28 @@
     <link rel="stylesheet" href="./home.css" />
 </head>
 <body>
-<h3>Workaholic Timer</h3>
-
 <div id="loading-message">Loading...</div>
 
 <div id="main-content">
     <div class="inputs">
         <div>
-            <label for="hours">Hours</label>
-            <input type="number" id="hours" min="0" max="23" value="0" />
+            <label for="work-time-hours">Hours</label>
+            <input type="number" id="work-time-hours" min="0" max="59" value="0" />
         </div>
         <div>
-            <label for="minutes">Minutes</label>
-            <input type="number" id="minutes" min="0" max="59" value="0" />
+            <label for="work-time-minutes">Minutes</label>
+            <input type="number" id="work-time-minutes" min="0" max="59" value="0" />
+        </div>
+    </div>
+
+    <div class="inputs">
+        <div>
+            <label for="danger-zone-threshold-hours">Hours</label>
+            <input type="number" id="danger-zone-threshold-hours" min="0" max="59" value="0" />
         </div>
         <div>
-            <label for="seconds">Seconds</label>
-            <input type="number" id="seconds" min="0" max="59" value="3" />
+            <label for="danger-zone-threshold-minutes">Minutes</label>
+            <input type="number" id="danger-zone-threshold-minutes" min="0" max="59" value="0" />
         </div>
     </div>
 
@@ -30,11 +35,6 @@
 
     <button id="start-btn">Start Timer</button>
     <button id="stop-btn">Stop Timer</button>
-
-    <div class="danger-zone-threshold-box">
-        <label for="danger-zone-threshold">Danger Zone Threshold (seconds)</label>
-        <input type="number" id="danger-zone-threshold" min="1" value="5" />
-    </div>
 </div>
 
 <script src="./home.js"></script>
