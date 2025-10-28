@@ -48,8 +48,15 @@ async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, workTimeAtInj
 
                 const box = document.createElement('div');
                 box.id = '__workTime_floating_box_v1__';
+
                 const span = document.createElement('span');
-                span.innerHTML = `⏱ Goal time: ${goalTimeFormatted} | Current time: <span id="__current_workTime__">${formatTime(workTimeAtInject)}</span>`;
+                span.textContent = `⏱ Goal time: ${goalTimeFormatted} | Current time: `;
+
+                const currentTimeSpan = document.createElement('span');
+                currentTimeSpan.id = '__current_workTime__';
+                currentTimeSpan.textContent = formatTime(workTimeAtInject);
+
+                span.appendChild(currentTimeSpan);
                 box.appendChild(span);
 
                 const inDangerZone = workTimeAtInject >= dangerZoneThreshold;
@@ -70,9 +77,8 @@ async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, workTimeAtInj
                     gap: 8px;
                 `;
                 if (inDangerZone) {
-                    const currentTimeEl = span.querySelector('#__current_workTime__');
-                    currentTimeEl.style.fontSize = '22px';
-                    currentTimeEl.style.fontWeight = 'bold';
+                    currentTimeSpan.style.fontSize = '22px';
+                    currentTimeSpan.style.fontWeight = 'bold';
 
                     dangerZoneThresholdReached = true;
                 }
