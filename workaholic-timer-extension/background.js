@@ -134,20 +134,21 @@ async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, workTimeAtInj
                     };
 
                     const handleMouseDown = (event) => {
-                        // Only respond to left mouse button
-                        if (event.button !== 0) return;
+                        if (event.button !== 0) return; // left-click only
+
+                        const rect = element.getBoundingClientRect();
+                        if (!element.style.left) {
+                            element.style.left = `${rect.left}px`;
+                            element.style.top = `${rect.top}px`;
+                            element.style.right = 'auto';
+                            element.style.bottom = 'auto';
+                        }
 
                         isDragging = true;
-                        const rect = element.getBoundingClientRect();
                         dragOffsetX = event.clientX - rect.left;
                         dragOffsetY = event.clientY - rect.top;
 
-                        // Adjust styling for dragging
                         element.style.cursor = 'grabbing';
-                        element.style.right = 'auto';
-                        element.style.bottom = 'auto';
-
-                        // Prevent text selection while dragging
                         event.preventDefault();
 
                         document.addEventListener('mousemove', handleMouseMove);
@@ -157,6 +158,7 @@ async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, workTimeAtInj
                     element.style.cursor = 'grab';
                     element.addEventListener('mousedown', handleMouseDown);
                 }
+
             },
             args: [goalTimeFormatted, workTimeAtInject, dangerZoneThreshold],
         });
