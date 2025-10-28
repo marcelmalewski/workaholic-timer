@@ -113,52 +113,35 @@ async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, workTimeAtInj
                 }
 
                 function makeElementDraggable(element) {
-                    let dragOffsetX = 0;
-                    let dragOffsetY = 0;
-                    let isDragging = false;
+                    let offsetX, offsetY, isDragging = false;
 
-                    const handleMouseMove = (event) => {
-                        if (!isDragging) return;
-                        element.style.top = `${event.clientY - dragOffsetY}px`;
-                        element.style.left = `${event.clientX - dragOffsetX}px`;
-                        element.style.right = 'auto';
-                        element.style.bottom = 'auto';
-                    };
-
-                    const handleMouseUp = () => {
-                        if (!isDragging) return;
-                        isDragging = false;
-                        element.style.cursor = 'grab';
-                        document.removeEventListener('mousemove', handleMouseMove);
-                        document.removeEventListener('mouseup', handleMouseUp);
-                    };
-
-                    const handleMouseDown = (event) => {
-                        if (event.button !== 0) return; // left-click only
-
-                        const rect = element.getBoundingClientRect();
-                        if (!element.style.left) {
-                            element.style.left = `${rect.left}px`;
-                            element.style.top = `${rect.top}px`;
-                            element.style.right = 'auto';
-                            element.style.bottom = 'auto';
-                        }
+                    element.addEventListener('mousedown', (event) => {
+                        if (event.button !== 0) return;
 
                         isDragging = true;
-                        dragOffsetX = event.clientX - rect.left;
-                        dragOffsetY = event.clientY - rect.top;
-
+                        offsetX = event.clientX - element.getBoundingClientRect().left;
+                        offsetY = event.clientY - element.getBoundingClientRect().top;
                         element.style.cursor = 'grabbing';
                         event.preventDefault();
+                    });
 
-                        document.addEventListener('mousemove', handleMouseMove);
-                        document.addEventListener('mouseup', handleMouseUp);
-                    };
+                    document.addEventListener('mousemove', (event) => {
+                        if (!isDragging) return;
+                        element.style.top = `${event.clientY - offsetY}px`;
+                        element.style.left = `${event.clientX - offsetX}px`;
+                        element.style.right = 'auto';
+                        element.style.bottom = 'auto';
+                    });
+
+                    document.addEventListener('mouseup', () => {
+                        if (isDragging) {
+                            isDragging = false;
+                            element.style.cursor = 'grab';
+                        }
+                    });
 
                     element.style.cursor = 'grab';
-                    element.addEventListener('mousedown', handleMouseDown);
                 }
-
             },
             args: [goalTimeFormatted, workTimeAtInject, dangerZoneThreshold],
         });
