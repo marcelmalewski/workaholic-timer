@@ -6,7 +6,7 @@ let timerState = {
     goalTimeFormatted: null,
     goalReached: false,
     dangerZoneThreshold: null,
-    lastNotificationTabId: null,
+    lastNotificationTabId: null, // TODO lepsza nazwa
 };
 let alarmName = 'workaholicTimer';
 
@@ -30,6 +30,7 @@ async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, workTimeAtInj
         if (!tab.url || tab.url.startsWith('chrome://')) {
             return;
         }
+        // TODO to blokuje refresh bo wtedy last tab jest ten sam co current
         if (timerState.lastNotificationTabId === tab.id) {
             return;
         }
@@ -48,6 +49,7 @@ async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, workTimeAtInj
 
                 const box = document.createElement('div');
                 box.id = '__workTime_floating_box_v1__';
+                makeElementDraggable(box);
 
                 const span = document.createElement('span');
                 span.textContent = `⏱ Goal time: ${goalTimeFormatted} | Current time: `;
@@ -109,6 +111,78 @@ async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, workTimeAtInj
                     const s = totalSeconds % 60;
                     return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
                 }
+
+                function makeElementDraggable(el) {
+                    let startX = 0, startY = 0, originX = 0, originY = 0;
+                    let dragging = false;
+
+                    const onMouseDown = (e) => {
+                        if (e.button !== 0) return; // left-click only
+                        dragging = true;
+                        el.style.cursor = 'grabbing';
+                        const rect = el.getBoundingClientRect();
+                        startX = e.clientX;
+                        startY = e.clientY;
+                        originX = rect.left;
+                        originY = rect.top;
+                        document.addEventListener('mousemove', onMouseMove);
+                        document.addEventListener('mouseup', onMouseUp);
+                        e.preventDefault();
+                    };
+
+                    const onMouseMove = (e) => {
+                        if (!dragging) return;
+                        const dx = e.clientX - startX;
+                        const dy = e.clientY - startY;
+                        // Use transform for GPU-accelerated movement (no reflow)
+                        el.style.transform = `translate(${dx}px, ${dy}px)`;
+                    };
+
+                    const onMouseUp = () => {
+                        if (!dragging) return;
+                        dragging = false;
+                        el.style.cursor = 'grab';
+
+                        // Commit transform changes to top/left for persistence
+                        const rect = el.getBoundingClientRect();
+                        el.style.top = `${rect.top}px`;
+                        el.style.left = `${rect.left}px`;
+                        el.style.transform = 'none'; // reset transform
+
+                        document.removeEventListener('mousemove', onMouseMove);
+                        document.removeEventListener('mouseup', onMouseUp);
+                    };
+
+                    el.style.cursor = 'grab';
+                    el.addEventListener('mousedown', onMouseDown);
+                }
+
+                function test(box) {
+                    // --- Make draggable ---
+                    let offsetX, offsetY, isDragging = false;
+                    box.addEventListener('mousedown', (e) => {
+                        isDragging = true;
+                        offsetX = e.clientX - box.getBoundingClientRect().left;
+                        offsetY = e.clientY - box.getBoundingClientRect().top;
+                        box.style.cursor = 'grabbing';
+                        e.preventDefault();
+                    });
+                    document.addEventListener('mousemove', (e) => {
+                        if (!isDragging) return;
+                        box.style.top = `${e.clientY - offsetY}px`;
+                        box.style.left = `${e.clientX - offsetX}px`;
+                        box.style.right = 'auto';
+                        box.style.bottom = 'auto';
+                    });
+                    document.addEventListener('mouseup', () => {
+                        if (isDragging) {
+                            isDragging = false;
+                            box.style.cursor = 'grab';
+                        }
+                    });
+                    box.style.cursor = 'grab';
+                }
+
             },
             args: [goalTimeFormatted, workTimeAtInject, dangerZoneThreshold],
         });
@@ -122,7 +196,7 @@ async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, workTimeAtInj
 chrome.alarms.onAlarm.addListener((alarm) => {
     if (alarm.name === alarmName) {
         const currentWorkTime = getCurrentWorkTime();
-        if (currentWorkTime >= timerState.goalTime) {
+        if (currentWorkTime >= 5) {
             timerState.goalTimeFormatted = formatTime(timerState.goalTime);
             timerState.goalReached = true;
 
@@ -132,16 +206,29 @@ chrome.alarms.onAlarm.addListener((alarm) => {
     }
 });
 
+// On change tab
 chrome.tabs.onActivated.addListener((_) => {
     if (timerState.goalReached && timerState.isRunning) {
         void injectWorkTimeFloatingBoxIntoTab(timerState.goalTimeFormatted, getCurrentWorkTime(), timerState.dangerZoneThreshold);
     }
 });
 
+// On change window focus
 chrome.windows.onFocusChanged.addListener((windowId) => {
     if (windowId === chrome.windows.WINDOW_ID_NONE) return;
     if (timerState.goalReached && timerState.isRunning) {
         void injectWorkTimeFloatingBoxIntoTab(timerState.goalTimeFormatted, getCurrentWorkTime(), timerState.dangerZoneThreshold);
+    }
+});
+
+// On window refresh
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, _) => {
+    if (changeInfo.status === 'complete' && timerState.goalReached && timerState.isRunning) {
+        chrome.tabs.query({ active: true, currentWindow: true }).then(tabs => {
+            if (tabs.length > 0 && tabs[0].id === tabId) {
+                void injectWorkTimeFloatingBoxIntoTab(timerState.goalTimeFormatted, getCurrentWorkTime(), timerState.dangerZoneThreshold);
+            }
+        });
     }
 });
 
@@ -212,6 +299,7 @@ async function removeNotificationFromTab(tabId) {
             },
         });
     } catch (err) {
+        // TODO czasem leci ten error
         console.error(`Could not remove notification from tab ${tabId}:`, err);
     }
 }
