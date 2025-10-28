@@ -261,9 +261,7 @@ function formatTime(timeInSeconds) {
 async function removeNotificationFromTab(tabId) {
     try {
         await chrome.scripting.executeScript({
-            target: { tabId: tabId },
-            world: 'MAIN',
-            func: () => {
+            target: { tabId: tabId }, world: 'MAIN', func: () => {
                 const workTimeFloatingBoxId = '__workTime_floating_box_v1__';
                 const workTimeFloatingBox = document.getElementById(workTimeFloatingBoxId);
                 if (workTimeFloatingBox) {
