@@ -112,77 +112,51 @@ async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, workTimeAtInj
                     return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
                 }
 
-                function makeElementDraggable(el) {
-                    let startX = 0, startY = 0, originX = 0, originY = 0;
-                    let dragging = false;
+                function makeElementDraggable(element) {
+                    let dragOffsetX = 0;
+                    let dragOffsetY = 0;
+                    let isDragging = false;
 
-                    const onMouseDown = (e) => {
-                        if (e.button !== 0) return; // left-click only
-                        dragging = true;
-                        el.style.cursor = 'grabbing';
-                        const rect = el.getBoundingClientRect();
-                        startX = e.clientX;
-                        startY = e.clientY;
-                        originX = rect.left;
-                        originY = rect.top;
-                        document.addEventListener('mousemove', onMouseMove);
-                        document.addEventListener('mouseup', onMouseUp);
-                        e.preventDefault();
-                    };
-
-                    const onMouseMove = (e) => {
-                        if (!dragging) return;
-                        const dx = e.clientX - startX;
-                        const dy = e.clientY - startY;
-                        // Use transform for GPU-accelerated movement (no reflow)
-                        el.style.transform = `translate(${dx}px, ${dy}px)`;
-                    };
-
-                    const onMouseUp = () => {
-                        if (!dragging) return;
-                        dragging = false;
-                        el.style.cursor = 'grab';
-
-                        // Commit transform changes to top/left for persistence
-                        const rect = el.getBoundingClientRect();
-                        el.style.top = `${rect.top}px`;
-                        el.style.left = `${rect.left}px`;
-                        el.style.transform = 'none'; // reset transform
-
-                        document.removeEventListener('mousemove', onMouseMove);
-                        document.removeEventListener('mouseup', onMouseUp);
-                    };
-
-                    el.style.cursor = 'grab';
-                    el.addEventListener('mousedown', onMouseDown);
-                }
-
-                function test(box) {
-                    // --- Make draggable ---
-                    let offsetX, offsetY, isDragging = false;
-                    box.addEventListener('mousedown', (e) => {
-                        isDragging = true;
-                        offsetX = e.clientX - box.getBoundingClientRect().left;
-                        offsetY = e.clientY - box.getBoundingClientRect().top;
-                        box.style.cursor = 'grabbing';
-                        e.preventDefault();
-                    });
-                    document.addEventListener('mousemove', (e) => {
+                    const handleMouseMove = (event) => {
                         if (!isDragging) return;
-                        box.style.top = `${e.clientY - offsetY}px`;
-                        box.style.left = `${e.clientX - offsetX}px`;
-                        box.style.right = 'auto';
-                        box.style.bottom = 'auto';
-                    });
-                    document.addEventListener('mouseup', () => {
-                        if (isDragging) {
-                            isDragging = false;
-                            box.style.cursor = 'grab';
-                        }
-                    });
-                    box.style.cursor = 'grab';
-                }
+                        element.style.top = `${event.clientY - dragOffsetY}px`;
+                        element.style.left = `${event.clientX - dragOffsetX}px`;
+                        element.style.right = 'auto';
+                        element.style.bottom = 'auto';
+                    };
 
+                    const handleMouseUp = () => {
+                        if (!isDragging) return;
+                        isDragging = false;
+                        element.style.cursor = 'grab';
+                        document.removeEventListener('mousemove', handleMouseMove);
+                        document.removeEventListener('mouseup', handleMouseUp);
+                    };
+
+                    const handleMouseDown = (event) => {
+                        // Only respond to left mouse button
+                        if (event.button !== 0) return;
+
+                        isDragging = true;
+                        const rect = element.getBoundingClientRect();
+                        dragOffsetX = event.clientX - rect.left;
+                        dragOffsetY = event.clientY - rect.top;
+
+                        // Adjust styling for dragging
+                        element.style.cursor = 'grabbing';
+                        element.style.right = 'auto';
+                        element.style.bottom = 'auto';
+
+                        // Prevent text selection while dragging
+                        event.preventDefault();
+
+                        document.addEventListener('mousemove', handleMouseMove);
+                        document.addEventListener('mouseup', handleMouseUp);
+                    };
+
+                    element.style.cursor = 'grab';
+                    element.addEventListener('mousedown', handleMouseDown);
+                }
             },
             args: [goalTimeFormatted, workTimeAtInject, dangerZoneThreshold],
         });
@@ -196,7 +170,7 @@ async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, workTimeAtInj
 chrome.alarms.onAlarm.addListener((alarm) => {
     if (alarm.name === alarmName) {
         const currentWorkTime = getCurrentWorkTime();
-        if (currentWorkTime >= 5) {
+        if (currentWorkTime >= 2) {
             timerState.goalTimeFormatted = formatTime(timerState.goalTime);
             timerState.goalReached = true;
 
