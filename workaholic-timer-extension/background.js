@@ -115,6 +115,10 @@ async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, workTimeAtInj
                 function makeElementDraggable(element) {
                     let offsetX, offsetY, isDragging = false;
 
+                    requestAnimationFrame(() => {
+                        element.style.cursor = 'grab';
+                    });
+
                     element.addEventListener('mousedown', (event) => {
                         if (event.button !== 0) return;
 
