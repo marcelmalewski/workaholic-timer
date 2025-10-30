@@ -257,6 +257,11 @@ function formatTime(timeInSeconds) {
 }
 
 async function removeNotificationFromTab(tabId) {
+    const tab = await chrome.tabs.get(tabId).catch(() => null);
+    if (!tab) {
+        return;
+    }
+
     try {
         await chrome.scripting.executeScript({
             target: { tabId: tabId }, world: 'MAIN', func: () => {
