@@ -21,7 +21,7 @@ async function loadTimerState() {
     timerState.timerStateLoadedFromStorage = true;
 }
 
-async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, workTimeAtInject, dangerZoneThreshold) {
+async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, workTimeAtInject, dangerZoneThreshold, afterTabRefresh) {
     try {
         const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
         if (tabs.length === 0) return;
@@ -30,8 +30,7 @@ async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, workTimeAtInj
         if (!tab.url || tab.url.startsWith('chrome://')) {
             return;
         }
-        // TODO to blokuje refresh bo wtedy last tab jest ten sam co current
-        if (timerState.lastNotificationTabId === tab.id) {
+        if (timerState.lastNotificationTabId === tab.id && !afterTabRefresh) {
             return;
         }
         if (timerState.lastNotificationTabId) {
@@ -164,7 +163,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
             timerState.goalReached = true;
 
             void chrome.alarms.clear(alarmName);
-            void injectWorkTimeFloatingBoxIntoTab(timerState.goalTimeFormatted, getCurrentWorkTime(), timerState.dangerZoneThreshold);
+            void injectWorkTimeFloatingBoxIntoTab(timerState.goalTimeFormatted, getCurrentWorkTime(), timerState.dangerZoneThreshold, false);
         }
     }
 });
@@ -172,7 +171,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 // On change tab
 chrome.tabs.onActivated.addListener((_) => {
     if (timerState.goalReached && timerState.isRunning) {
-        void injectWorkTimeFloatingBoxIntoTab(timerState.goalTimeFormatted, getCurrentWorkTime(), timerState.dangerZoneThreshold);
+        void injectWorkTimeFloatingBoxIntoTab(timerState.goalTimeFormatted, getCurrentWorkTime(), timerState.dangerZoneThreshold, false);
     }
 });
 
@@ -180,7 +179,7 @@ chrome.tabs.onActivated.addListener((_) => {
 chrome.windows.onFocusChanged.addListener((windowId) => {
     if (windowId === chrome.windows.WINDOW_ID_NONE) return;
     if (timerState.goalReached && timerState.isRunning) {
-        void injectWorkTimeFloatingBoxIntoTab(timerState.goalTimeFormatted, getCurrentWorkTime(), timerState.dangerZoneThreshold);
+        void injectWorkTimeFloatingBoxIntoTab(timerState.goalTimeFormatted, getCurrentWorkTime(), timerState.dangerZoneThreshold, false);
     }
 });
 
@@ -189,7 +188,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, _) => {
     if (changeInfo.status === 'complete' && timerState.goalReached && timerState.isRunning) {
         chrome.tabs.query({ active: true, currentWindow: true }).then(tabs => {
             if (tabs.length > 0 && tabs[0].id === tabId) {
-                void injectWorkTimeFloatingBoxIntoTab(timerState.goalTimeFormatted, getCurrentWorkTime(), timerState.dangerZoneThreshold);
+                void injectWorkTimeFloatingBoxIntoTab(timerState.goalTimeFormatted, getCurrentWorkTime(), timerState.dangerZoneThreshold, true);
             }
         });
     }
@@ -260,7 +259,6 @@ async function removeNotificationFromTab(tabId) {
             },
         });
     } catch (err) {
-        // TODO czasem leci ten error
         console.error(`Could not remove notification from tab ${tabId}:`, err);
     }
 }
