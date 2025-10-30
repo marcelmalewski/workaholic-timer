@@ -168,7 +168,7 @@ async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, workTimeAtInj
 chrome.alarms.onAlarm.addListener((alarm) => {
     if (alarm.name === alarmName) {
         const currentWorkTime = getCurrentWorkTime();
-        if (currentWorkTime >= 2) { // TODO remove "2"
+        if (currentWorkTime >= timerState.goalTime) {
             timerState.goalTimeFormatted = formatTime(timerState.goalTime);
             timerState.goalReached = true;
 
