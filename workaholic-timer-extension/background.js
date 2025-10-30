@@ -6,7 +6,8 @@ let timerState = {
     goalTimeFormatted: null,
     goalReached: false,
     dangerZoneThreshold: null,
-    lastNotificationTabId: null, // TODO lepsza nazwa
+    lastActiveTabId: null,
+    triedInjectingAfterExecuteScriptError: false,
 };
 let alarmName = 'workaholicTimer';
 
@@ -21,27 +22,28 @@ async function loadTimerState() {
     timerState.timerStateLoadedFromStorage = true;
 }
 
-async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, workTimeAtInject, dangerZoneThreshold, afterTabRefresh) {
+async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, workTimeAtInject, dangerZoneThreshold, afterTabRefresh, tabId) {
     try {
-        const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-        if (tabs.length === 0) return;
-        const tab = tabs[0];
+        let currentActiveTabId = tabId;
+        if (!currentActiveTabId) {
+            const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+            if (tabs.length === 0) return;
+            const tab = tabs[0];
+            currentActiveTabId = tab.id;
 
-        if (!tab.url || tab.url.startsWith('chrome://')) {
-            return;
+            if (!tab.url || tab.url.startsWith('chrome://')) {
+                return;
+            }
+            if (timerState.lastActiveTabId === currentActiveTabId && !afterTabRefresh) {
+                return;
+            }
+            if (timerState.lastActiveTabId) {
+                await removeNotificationFromTab(timerState.lastActiveTabId);
+            }
         }
-        if (timerState.lastNotificationTabId === tab.id && !afterTabRefresh) {
-            return;
-        }
-        if (timerState.lastNotificationTabId) {
-            await removeNotificationFromTab(timerState.lastNotificationTabId);
-        }
-
-        timerState.lastNotificationTabId = tab.id;
-        void saveTimerState();
 
         await chrome.scripting.executeScript({
-            target: { tabId: tab.id },
+            target: { tabId: currentActiveTabId },
             world: 'MAIN',
             func: (goalTimeFormatted, workTimeAtInject, dangerZoneThreshold) => {
                 let dangerZoneThresholdReached = false;
@@ -148,10 +150,18 @@ async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, workTimeAtInj
             },
             args: [goalTimeFormatted, workTimeAtInject, dangerZoneThreshold],
         });
-    } catch (err) {
-        timerState.lastNotificationTabId = null;
+
+        timerState.lastActiveTabId = currentActiveTabId;
+        timerState.triedInjectingAfterExecuteScriptError = false;
         void saveTimerState();
-        console.error(`Error in injectNotificationIntoTab: ${err}`);
+    } catch (err) {
+        if (!timerState.lastActiveTabId || timerState.triedInjectingAfterExecuteScriptError) {
+            return;
+        }
+
+        timerState.triedInjectingAfterExecuteScriptError = true;
+        void saveTimerState();
+        void injectWorkTimeFloatingBoxIntoTab(timerState.goalTimeFormatted, getCurrentWorkTime(), timerState.dangerZoneThreshold, false, timerState.lastActiveTabId);
     }
 }
 
@@ -163,7 +173,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
             timerState.goalReached = true;
 
             void chrome.alarms.clear(alarmName);
-            void injectWorkTimeFloatingBoxIntoTab(timerState.goalTimeFormatted, getCurrentWorkTime(), timerState.dangerZoneThreshold, false);
+            void injectWorkTimeFloatingBoxIntoTab(timerState.goalTimeFormatted, getCurrentWorkTime(), timerState.dangerZoneThreshold, false, undefined);
         }
     }
 });
@@ -171,7 +181,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 // On change tab
 chrome.tabs.onActivated.addListener((_) => {
     if (timerState.goalReached && timerState.isRunning) {
-        void injectWorkTimeFloatingBoxIntoTab(timerState.goalTimeFormatted, getCurrentWorkTime(), timerState.dangerZoneThreshold, false);
+        void injectWorkTimeFloatingBoxIntoTab(timerState.goalTimeFormatted, getCurrentWorkTime(), timerState.dangerZoneThreshold, false, undefined);
     }
 });
 
@@ -179,7 +189,7 @@ chrome.tabs.onActivated.addListener((_) => {
 chrome.windows.onFocusChanged.addListener((windowId) => {
     if (windowId === chrome.windows.WINDOW_ID_NONE) return;
     if (timerState.goalReached && timerState.isRunning) {
-        void injectWorkTimeFloatingBoxIntoTab(timerState.goalTimeFormatted, getCurrentWorkTime(), timerState.dangerZoneThreshold, false);
+        void injectWorkTimeFloatingBoxIntoTab(timerState.goalTimeFormatted, getCurrentWorkTime(), timerState.dangerZoneThreshold, false, undefined);
     }
 });
 
@@ -188,7 +198,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, _) => {
     if (changeInfo.status === 'complete' && timerState.goalReached && timerState.isRunning) {
         chrome.tabs.query({ active: true, currentWindow: true }).then(tabs => {
             if (tabs.length > 0 && tabs[0].id === tabId) {
-                void injectWorkTimeFloatingBoxIntoTab(timerState.goalTimeFormatted, getCurrentWorkTime(), timerState.dangerZoneThreshold, true);
+                void injectWorkTimeFloatingBoxIntoTab(timerState.goalTimeFormatted, getCurrentWorkTime(), timerState.dangerZoneThreshold, true, undefined);
             }
         });
     }
@@ -214,9 +224,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         timerState.dangerZoneThreshold = null;
 
         void chrome.alarms.clear(alarmName);
-        if (timerState.lastNotificationTabId) {
-            void removeNotificationFromTab(timerState.lastNotificationTabId);
-            timerState.lastNotificationTabId = null;
+        if (timerState.lastActiveTabId) {
+            void removeNotificationFromTab(timerState.lastActiveTabId);
+            timerState.lastActiveTabId = null;
         }
         void saveTimerState();
 
