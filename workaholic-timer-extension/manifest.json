@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Workaholic Timer",
+  "name": "Burnout Guard",
   "version": "0.0.1",
-  "description": "Timer for workaholics",
+  "description": "Know when to stop — protect your focus.",
   "action": {
     "default_popup": "home.html"
   },
