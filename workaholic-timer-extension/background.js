@@ -236,6 +236,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             isRunning: timerState.isRunning,
             currentWorkTime: getCurrentWorkTime(),
             goalTime: timerState.goalTime,
+            dangerZoneThreshold: timerState.dangerZoneThreshold,
             goalReached: timerState.goalReached,
             timerStateLoadedFromStorage: timerState.timerStateLoadedFromStorage,
         });

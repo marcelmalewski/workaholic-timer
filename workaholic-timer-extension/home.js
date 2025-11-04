@@ -17,25 +17,36 @@ void updateHomeUI();
 
 async function updateHomeUI() {
     const response = await getTimerStateWhenIsLoaded();
+
+    if (response.goalTime) {
+        goalTimeHours.value = Math.floor(response.goalTime / 3600);
+        goalTimeMinutes.value = Math.floor((response.goalTime % 3600) / 60);
+    }
+
+    if (response.dangerZoneThreshold) {
+        dangerZoneThresholdHours.value = Math.floor(response.dangerZoneThreshold / 3600);
+        dangerZoneThresholdMinutes.value = Math.floor((response.dangerZoneThreshold % 3600) / 60);
+    }
+
     if (response.goalReached) {
         timerDisplay.textContent = 'Overtime';
-        setWorkTimeIsRunningState()
-        changeLoadingScreenToHomeScreen()
+        setWorkTimeIsRunningState();
+        changeLoadingScreenToHomeScreen();
 
         return;
     }
     if (!response.isRunning) {
         timerDisplay.textContent = '00:00:00';
-        setWorkTimeNotRunningState()
-        changeLoadingScreenToHomeScreen()
+        setWorkTimeNotRunningState();
+        changeLoadingScreenToHomeScreen();
 
         return;
     }
 
     let currentWorkTime = response.currentWorkTime;
     timerDisplay.textContent = formatTime(currentWorkTime);
-    setWorkTimeIsRunningState()
-    changeLoadingScreenToHomeScreen()
+    setWorkTimeIsRunningState();
+    changeLoadingScreenToHomeScreen();
 
     updateInterval = setInterval(() => {
         currentWorkTime++;
@@ -120,7 +131,7 @@ startBtn.addEventListener('click', async () => {
 
 stopBtn.addEventListener('click', async () => {
     chrome.runtime.sendMessage({ action: 'stopTimer' }).then(() => {
-        if(updateInterval) {
+        if (updateInterval) {
             clearInterval(updateInterval);
             updateInterval = null;
         }
