@@ -8,7 +8,7 @@
 <body>
 <div id="loading-message">Loading...</div>
 
-<div id="main-content">
+<div id="main-view">
     <div class="input-section">
         <label class="section-label" for="config-selector">Config</label>
         <select id="config-selector"></select>
@@ -47,6 +47,14 @@
     <button id="start-btn">Start Timer</button>
     <button id="stop-btn">Stop Timer</button>
     <button id="settings-btn">Settings</button>
+</div>
+
+<div id="settings-view" style="display: none;">
+    <h2>Configurations</h2>
+    <div id="configs-list"></div>
+
+    <button id="add-config-btn">Add New Config</button>
+    <button id="back-btn">Back</button>
 </div>
 
 <script src="./home.js"></script>

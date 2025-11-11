@@ -10,7 +10,7 @@ const dangerZoneThresholdHours = document.getElementById('danger-zone-threshold-
 const dangerZoneThresholdMinutes = document.getElementById('danger-zone-threshold-minutes');
 
 const loadingMessage = document.getElementById('loading-message');
-const mainContent = document.getElementById('main-content');
+const mainView = document.getElementById('main-view');
 
 const configSelector = document.getElementById('config-selector');
 
@@ -137,7 +137,7 @@ async function updateHomeUI() {
 
 function changeLoadingScreenToHomeScreen() {
     loadingMessage.style.display = 'none';
-    mainContent.style.display = 'block';
+    mainView.style.display = 'block';
 }
 
 function setWorkTimeIsRunningState() {
