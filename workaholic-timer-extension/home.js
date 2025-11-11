@@ -1,3 +1,5 @@
+let devSetup = true;
+
 const startBtn = document.getElementById('start-btn');
 const stopBtn = document.getElementById('stop-btn');
 const timerDisplay = document.getElementById('timer-display');
@@ -10,10 +12,81 @@ const dangerZoneThresholdMinutes = document.getElementById('danger-zone-threshol
 const loadingMessage = document.getElementById('loading-message');
 const mainContent = document.getElementById('main-content');
 
-let updateInterval = null;
+const configSelector = document.getElementById('config-selector');
 
-// Initialize home ui
-void updateHomeUI();
+let updateInterval = null;
+let configs = [];
+let currentConfigIndex = 0;
+
+void initializeHomeUI();
+async function initializeHomeUI() {
+    await loadConfigsFromStorage();
+    loadConfigsToSelector();
+    void updateHomeUI();
+}
+
+async function loadConfigsFromStorage() {
+    const configsFromStorage = await chrome.storage.local.get('configs')
+    if(devSetup) {
+        configs = [{
+            name: 'Default',
+            goalTime: 1800,
+            dangerZoneThreshold: 2100
+        }];
+        await saveConfigs();
+        return;
+    }
+
+    configs = configsFromStorage || [];
+    if (configs.length === 0) {
+        configs = [{
+            name: 'Default',
+            goalTime: 1800,
+            dangerZoneThreshold: 2100
+        }]
+        await saveConfigs();
+    }
+}
+
+async function saveConfigs() {
+    await chrome.storage.local.set({ configs });
+}
+
+function loadConfigsToSelector() {
+    while (configSelector.firstChild) {
+        configSelector.removeChild(configSelector.firstChild);
+    }
+
+    for (let i = 0; i < configs.length; i++) {
+        const option = document.createElement('option');
+        option.value = String(i);
+        option.textContent = configs[i].name;
+        configSelector.appendChild(option);
+    }
+
+    if (currentConfigIndex >= configs.length) {
+        currentConfigIndex = 0;
+    }
+
+    configSelector.value = String(currentConfigIndex);
+    applyConfig(configs[currentConfigIndex]);
+
+    if (!configSelector._listenerAdded) {
+        configSelector.addEventListener('change', () => {
+            currentConfigIndex = Number(configSelector.value);
+            applyConfig(configs[currentConfigIndex]);
+        });
+        configSelector._listenerAdded = true;
+    }
+}
+
+
+function applyConfig(config) {
+    goalTimeHours.value = Math.floor(config.goalTime / 3600);
+    goalTimeMinutes.value = Math.floor((config.goalTime % 3600) / 60);
+    dangerZoneThresholdHours.value = Math.floor(config.dangerZoneThreshold / 3600);
+    dangerZoneThresholdMinutes.value = Math.floor((config.dangerZoneThreshold % 3600) / 60);
+}
 
 async function updateHomeUI() {
     const response = await getTimerStateWhenIsLoaded();
@@ -90,7 +163,7 @@ async function getTimerStateWhenIsLoaded() {
     while (true) {
         response = await chrome.runtime.sendMessage({ action: 'getTimerState' });
         if (response.timerStateLoadedFromStorage) break;
-        await new Promise(r => setTimeout(r, 100));
+        await new Promise(resolve => setTimeout(resolve, 100));
     }
     return response;
 }
