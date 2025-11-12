@@ -13,10 +13,23 @@ const loadingMessage = document.getElementById('loading-message');
 const mainView = document.getElementById('main-view');
 
 const configSelector = document.getElementById('config-selector');
+const settingsBtn = document.getElementById('settings-btn');
+const settingsView = document.getElementById('settings-view');
+const addConfigBtn = document.getElementById('add-config-btn');
+const backBtn = document.getElementById('back-btn');
+const configsList = document.getElementById('configs-list');
+
+const editConfigView = document.getElementById('edit-config-view');
+const editNameInput = document.getElementById('edit-name');
+const editGoalInput = document.getElementById('edit-goal');
+const editDangerZoneInput = document.getElementById('edit-danger-zone');
+const saveEditBtn = document.getElementById('save-edit-btn');
+const cancelEditBtn = document.getElementById('cancel-edit-btn');
 
 let updateInterval = null;
 let configs = [];
 let currentConfigIndex = 0;
+let editingConfigIndex = null;
 
 void initializeHomeUI();
 async function initializeHomeUI() {
@@ -26,24 +39,14 @@ async function initializeHomeUI() {
 }
 
 async function loadConfigsFromStorage() {
-    const configsFromStorage = await chrome.storage.local.get('configs')
-    if(devSetup) {
-        configs = [{
-            name: 'Default',
-            goalTime: 1800,
-            dangerZoneThreshold: 2100
-        }];
-        await saveConfigs();
-        return;
-    }
-
-    configs = configsFromStorage || [];
+    const result = await chrome.storage.local.get('configs');
+    configs = result.configs || [];
     if (configs.length === 0) {
         configs = [{
             name: 'Default',
             goalTime: 1800,
             dangerZoneThreshold: 2100
-        }]
+        }];
         await saveConfigs();
     }
 }
@@ -79,7 +82,6 @@ function loadConfigsToSelector() {
         configSelector._listenerAdded = true;
     }
 }
-
 
 function applyConfig(config) {
     goalTimeHours.value = Math.floor(config.goalTime / 3600);
@@ -212,3 +214,116 @@ stopBtn.addEventListener('click', async () => {
         void updateHomeUI();
     });
 });
+
+settingsBtn.addEventListener('click', () => {
+    mainView.style.display = 'none';
+    settingsView.style.display = 'block';
+    renderConfigsList();
+});
+
+saveEditBtn.addEventListener('click', async () => {
+    const name = editNameInput.value.trim();
+    const goal = Number(editGoalInput.value || 0) * 60;
+    const danger = Number(editDangerZoneInput.value || 0) * 60;
+
+    if (!name) {
+        alert('Please enter a configuration name.');
+        return;
+    }
+    if (goal <= 0) {
+        alert('Goal time must be greater than zero.');
+        return;
+    }
+    if (danger <= goal) {
+        alert('Danger zone must be greater than the goal time.');
+        return;
+    }
+
+    const newConfig = { name, goalTime: goal, dangerZoneThreshold: danger };
+    if (editingConfigIndex === null) {
+        configs.push(newConfig);
+    } else {
+        configs[editingConfigIndex] = newConfig;
+    }
+
+    await saveConfigs();
+    loadConfigsToSelector();
+    renderConfigsList();
+    settingsView.style.display = 'block';
+    editConfigView.style.display = 'none';
+});
+
+// TODO every element should show all current settings
+function renderConfigsList() {
+    while (configsList.firstChild) {
+        configsList.removeChild(configsList.firstChild);
+    }
+
+    configs.forEach((config, index) => {
+        const configItemElement = document.createElement('div');
+        configItemElement.className = 'config-item';
+
+        const nameElement = document.createElement('span');
+        nameElement.textContent = config.name;
+        configItemElement.appendChild(nameElement);
+
+        const buttonContainer = document.createElement('div');
+
+        const editButtonElement = document.createElement('button');
+        editButtonElement.textContent = 'Edit';
+        editButtonElement.dataset.edit = String(index);
+        editButtonElement.dataset.test = config.goalTime;
+        editButtonElement.addEventListener('click', () => {
+            editingConfigIndex = index;
+            const cfg = configs[index];
+            editNameInput.value = cfg.name;
+            editGoalInput.value = Math.floor(cfg.goalTime / 60);
+            editDangerZoneInput.value = Math.floor(cfg.dangerZoneThreshold / 60);
+            settingsView.style.display = 'none';
+            editConfigView.style.display = 'block';
+        });
+        buttonContainer.appendChild(editButtonElement);
+
+        if (index > 0) {
+            const deleteButtonElement = document.createElement('button');
+            deleteButtonElement.textContent = 'Delete';
+            deleteButtonElement.dataset.delete = String(index);
+            deleteButtonElement.addEventListener('click', async () => {
+                if (!confirm('Delete this config?')) return;
+                configs.splice(index, 1);
+                await saveConfigs();
+                loadConfigsToSelector();
+                renderConfigsList();
+            });
+            buttonContainer.appendChild(deleteButtonElement);
+        }
+
+        configItemElement.appendChild(buttonContainer);
+        configsList.appendChild(configItemElement);
+    });
+}
+
+addConfigBtn.addEventListener('click', () => {
+    if (configs.length >= 3) {
+        alert('You can only have up to 3 configs.');
+        return;
+    }
+
+    editingConfigIndex = null;
+    editNameInput.value = '';
+    editGoalInput.value = '';
+    editDangerZoneInput.value = '';
+    settingsView.style.display = 'none';
+    editConfigView.style.display = 'block';
+});
+
+backBtn.addEventListener('click', () => {
+    settingsView.style.display = 'none';
+    mainView.style.display = 'block';
+});
+
+cancelEditBtn.addEventListener('click', () => {
+    settingsView.style.display = 'block';
+    editConfigView.style.display = 'none';
+});
+

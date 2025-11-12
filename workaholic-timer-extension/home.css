@@ -17,6 +17,16 @@ body {
     display: none;
 }
 
+#settings-view {
+    display: none;
+    text-align: left;
+}
+
+#settings-view h2, #edit-config-view h3 {
+    text-align: center;
+    margin-bottom: 12px;
+}
+
 .input-section {
     display: flex;
     align-items: center;
@@ -114,12 +124,16 @@ button {
     background: #c82333;
 }
 
-#settings-btn {
+#settings-btn, #add-config-btn, #back-btn, #save-edit-btn, #cancel-edit-btn {
     background: #007bff;
     color: white;
 }
 
-#settings-btn:hover {
+#settings-btn:hover,
+#add-config-btn:hover,
+#back-btn:hover,
+#save-edit-btn:hover,
+#cancel-edit-btn:hover {
     background: #0069d9;
 }
 
@@ -130,4 +144,27 @@ button:active {
 button:disabled {
     cursor: not-allowed;
     opacity: 0.6;
+}
+
+#configs-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.config-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 8px;
+    background: #fafafa;
+}
+
+.config-item button {
+    width: auto;
+    padding: 6px 10px;
+    font-size: 13px;
 }

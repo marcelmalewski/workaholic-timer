@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <title>Workaholic Timer</title>
+    <title>Burnout guard</title>
     <link rel="stylesheet" href="./home.css" />
 </head>
 <body>
@@ -55,6 +55,28 @@
 
     <button id="add-config-btn">Add New Config</button>
     <button id="back-btn">Back</button>
+</div>
+
+<div id="edit-config-view" style="display: none; margin-top: 16px;">
+    <h3>Edit Config</h3>
+
+    <div class="input-section">
+        <label class="section-label" for="edit-name">Name</label>
+        <input type="text" id="edit-name" placeholder="Config name">
+    </div>
+
+    <div class="input-section">
+        <label class="section-label" for="edit-goal">Goal Time (min)</label>
+        <input type="number" id="edit-goal" min="1">
+    </div>
+
+    <div class="input-section">
+        <label class="section-label" for="edit-danger-zone">Danger Zone (min)</label>
+        <input type="number" id="edit-danger-zone" min="1">
+    </div>
+
+    <button id="save-edit-btn">Save</button>
+    <button id="cancel-edit-btn">Cancel</button>
 </div>
 
 <script src="./home.js"></script>
