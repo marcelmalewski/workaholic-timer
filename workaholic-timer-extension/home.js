@@ -271,8 +271,6 @@ function renderConfigsList() {
 
         const editButtonElement = document.createElement('button');
         editButtonElement.textContent = 'Edit';
-        editButtonElement.dataset.edit = String(index);
-        editButtonElement.dataset.test = config.goalTime;
         editButtonElement.addEventListener('click', () => {
             editingConfigIndex = index;
             const cfg = configs[index];
@@ -287,7 +285,6 @@ function renderConfigsList() {
         if (index > 0) {
             const deleteButtonElement = document.createElement('button');
             deleteButtonElement.textContent = 'Delete';
-            deleteButtonElement.dataset.delete = String(index);
             deleteButtonElement.addEventListener('click', async () => {
                 if (!confirm('Delete this config?')) return;
                 configs.splice(index, 1);
