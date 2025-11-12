@@ -253,7 +253,6 @@ saveEditBtn.addEventListener('click', async () => {
     editConfigView.style.display = 'none';
 });
 
-// TODO every element should show all current settings
 function renderConfigsList() {
     while (configsList.firstChild) {
         configsList.removeChild(configsList.firstChild);
@@ -263,14 +262,27 @@ function renderConfigsList() {
         const configItemElement = document.createElement('div');
         configItemElement.className = 'config-item';
 
-        const nameElement = document.createElement('span');
+        const infoElement = document.createElement('div');
+        infoElement.className = 'config-info';
+
+        const nameElement = document.createElement('strong');
         nameElement.textContent = config.name;
-        configItemElement.appendChild(nameElement);
+        infoElement.appendChild(nameElement);
+
+        const configValuesElement = document.createElement('span');
+        const goalMinutes = Math.floor(config.goalTime / 60);
+        const dangerMinutes = Math.floor(config.dangerZoneThreshold / 60);
+        configValuesElement.textContent = `${goalMinutes} min / ${dangerMinutes} min`;
+        infoElement.appendChild(configValuesElement);
+
+        configItemElement.appendChild(infoElement);
 
         const buttonContainer = document.createElement('div');
+        buttonContainer.className = 'config-actions';
 
         const editButtonElement = document.createElement('button');
         editButtonElement.textContent = 'Edit';
+        editButtonElement.className = 'edit-button';
         editButtonElement.addEventListener('click', () => {
             editingConfigIndex = index;
             const cfg = configs[index];
@@ -285,6 +297,7 @@ function renderConfigsList() {
         if (index > 0) {
             const deleteButtonElement = document.createElement('button');
             deleteButtonElement.textContent = 'Delete';
+            deleteButtonElement.className = 'delete-button';
             deleteButtonElement.addEventListener('click', async () => {
                 if (!confirm('Delete this config?')) return;
                 configs.splice(index, 1);
@@ -299,6 +312,7 @@ function renderConfigsList() {
         configsList.appendChild(configItemElement);
     });
 }
+
 
 addConfigBtn.addEventListener('click', () => {
     if (configs.length >= 3) {

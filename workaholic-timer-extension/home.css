@@ -27,6 +27,14 @@ body {
     margin-bottom: 12px;
 }
 
+#edit-config-view input,
+#settings-view input {
+    width: 100%;
+    font-size: 16px;
+    padding: 8px;
+    box-sizing: border-box;
+}
+
 .input-section {
     display: flex;
     align-items: center;
@@ -167,4 +175,51 @@ button:disabled {
     width: auto;
     padding: 6px 10px;
     font-size: 13px;
+}
+
+.edit-button {
+    background-color: #007bff;
+    color: #fff;
+    width: auto;
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.edit-button:hover {
+    background-color: #0069d9;
+}
+
+.delete-button {
+    background-color: #dc3545;
+    color: #fff;
+    width: auto;
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.delete-button:hover {
+    background-color: #c82333;
+}
+
+.config-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.config-info strong {
+    font-weight: 600;
+}
+
+.config-actions {
+    display: flex;
+    gap: 6px;
 }
