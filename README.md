@@ -1,4 +1,4 @@
-# 🧵 Workaholic timer
+# Workaholic timer
 
 **Know when to stop — protect your focus.**
 
