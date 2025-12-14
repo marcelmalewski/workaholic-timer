@@ -4,7 +4,14 @@
   "version": "0.0.3",
   "description": "Know when to stop — protect your focus.",
   "action": {
-    "default_popup": "home.html"
+    "default_popup": "home.html",
+    "default_icon": "plugin-icon.png"
+  },
+  "icons": {
+    "16": "plugin-icon.png",
+    "32": "plugin-icon.png",
+    "48": "plugin-icon.png",
+    "128": "plugin-icon.png"
   },
   "background": {
     "service_worker": "background.js"

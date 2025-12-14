@@ -139,7 +139,7 @@ async function updateHomeUI() {
 
 function changeLoadingScreenToHomeScreen() {
     loadingMessage.style.display = 'none';
-    mainView.style.display = 'block';
+    mainView.style.display = 'flex';
 }
 
 function setWorkTimeIsRunningState() {
@@ -149,6 +149,7 @@ function setWorkTimeIsRunningState() {
     goalTimeMinutes.disabled = true;
     dangerZoneThresholdHours.disabled = true;
     dangerZoneThresholdMinutes.disabled = true;
+    configSelector.disabled = true;
 }
 
 function setWorkTimeNotRunningState() {
@@ -158,6 +159,7 @@ function setWorkTimeNotRunningState() {
     goalTimeMinutes.disabled = false;
     dangerZoneThresholdHours.disabled = false;
     dangerZoneThresholdMinutes.disabled = false;
+    configSelector.disabled = false;
 }
 
 async function getTimerStateWhenIsLoaded() {
@@ -330,7 +332,7 @@ addConfigBtn.addEventListener('click', () => {
 
 backBtn.addEventListener('click', () => {
     settingsView.style.display = 'none';
-    mainView.style.display = 'block';
+    mainView.style.display = 'flex';
 });
 
 cancelEditBtn.addEventListener('click', () => {
