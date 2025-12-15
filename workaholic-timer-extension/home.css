@@ -15,22 +15,29 @@
   --surface-weak: rgba(255, 255, 255, 0.4);
   --surface-strong: rgba(255, 255, 255, 0.75);
 
-  /* ===== Radius ===== */
-  --radius-sm: 10px;
-  --radius-md: 14px;
-  --radius-lg: 18px;
+  /* ===== Radius (Tailwind) ===== */
+  --radius-sm: 0.375rem; /* 6px */
+  --radius-md: 0.5rem;   /* 8px */
+  --radius-lg: 0.75rem;  /* 12px */
 
-  /* ===== Spacing ===== */
-  --padding-sm: 10px;
-  --padding-md: 14px;
-  --padding-lg: 18px;
+  /* ===== Spacing (Tailwind) ===== */
+  --padding-xs: 0.25rem; /* 4px */
+  --padding-sm: 0.5rem;  /* 8px */
+  --padding-md: 0.75rem; /* 12px */
+  --padding-lg: 1rem;    /* 16px */
+
+  /* ===== Font Sizes (Tailwind) ===== */
+  --font-xs: 0.75rem;    /* 12px */
+  --font-sm: 0.875rem;   /* 14px */
+  --font-base: 1rem;     /* 16px */
+  --font-lg: 1.125rem;   /* 18px */
+  --font-xl: 2.75rem;    /* 44px */
 
   /* ===== Effects ===== */
-  --shadow-soft:
-      inset 0 1px 0 rgba(255, 255, 255, 0.6),
-      0 2px 6px rgba(0, 0, 0, 0.12);
+  --shadow-soft: inset 0 1px 0 rgba(255, 255, 255, 0.6),
+  0 2px 6px rgba(0, 0, 0, 0.12);
 
-  --focus-ring: 0 0 0 2px rgba(115, 175, 111, 0.45);
+  --focus-ring: 0 0 0 0.125rem rgba(115, 175, 111, 0.45); /* 2px */
 
   --hover-strong: #006b5e;
   --hover-soft: #5f9f5c;
@@ -43,7 +50,7 @@ body {
   color: var(--text-primary);
   font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   padding: var(--padding-lg);
-  width: 320px;
+  width: 20rem; /* 320px */
   margin: 0;
 }
 
@@ -76,10 +83,10 @@ body {
 }
 
 .section-label {
-  font-size: 13px;
+  font-size: var(--font-sm);
   font-weight: 600;
   color: var(--text-primary);
-  width: 120px;
+  width: 7.5rem; /* 120px */
 }
 
 /* ===== Inputs ===== */
@@ -94,33 +101,32 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 0.25rem; /* 4px */
 }
 
 .inputs label {
-  font-size: 11px;
+  font-size: var(--font-xs);
   color: var(--text-muted);
 }
 
 #config-selector {
-  width: calc(100% - 130px);
+  width: calc(100% - 8.125rem); /* 130px */
   text-align: left;
 }
 
 input,
 select {
-  width: 60px;
-  padding: 7px;
-  font-size: 14px;
+  width: 3.75rem; /* 60px */
+  padding: 0.4375rem; /* 7px */
+  font-size: var(--font-sm);
   text-align: center;
   border: none;
   border-radius: var(--radius-sm);
   background: var(--surface-strong);
   color: var(--text-primary);
 
-  box-shadow:
-      var(--focus-ring),
-      inset 0 1px 2px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--focus-ring),
+  inset 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 
 input:focus,
@@ -138,30 +144,29 @@ select:disabled {
 /* ===== Timer ===== */
 
 #timer-display {
-  margin: 6px 0 2px;
-  padding: 14px 10px;
-  font-size: 44px;
+  margin: 0.375rem 0 0.125rem; /* 6px 0 2px */
+  padding: 0.875rem 0.625rem;  /* 14px 10px */
+  font-size: var(--font-xl);
   font-weight: 700;
   text-align: center;
   color: var(--accent-strong);
-  letter-spacing: 2px;
+  letter-spacing: 0.125rem; /* 2px */
   font-variant-numeric: tabular-nums;
 
   border-radius: var(--radius-sm);
   background: var(--surface-strong);
-  box-shadow:
-      var(--focus-ring),
-      inset 0 1px 2px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--focus-ring),
+  inset 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 
 /* ===== Buttons ===== */
 
 button {
   width: 100%;
-  padding: 12px;
+  padding: 0.75rem; /* 12px */
   border-radius: var(--radius-md);
   border: none;
-  font-size: 15px;
+  font-size: var(--font-base);
   font-weight: 600;
   cursor: pointer;
   transition: background 0.15s, transform 0.15s;
@@ -191,7 +196,24 @@ button:disabled {
   background: var(--hover-strong);
 }
 
-/* Stop */
+/* Secondary */
+
+#settings-btn,
+#back-btn,
+#cancel-edit-btn,
+.edit-button {
+  background: var(--accent-soft);
+  color: #fff;
+}
+
+#settings-btn:hover,
+#back-btn:hover,
+#cancel-edit-btn:hover,
+.edit-button:hover {
+  background: var(--hover-soft);
+}
+
+/* Danger */
 
 #stop-btn {
   display: none;
@@ -199,24 +221,15 @@ button:disabled {
   color: #fff;
 }
 
-#stop-btn:hover {
+#stop-btn:hover, .delete-button:hover {
   background: #a23f3f;
 }
 
-/* Secondary */
-
-#settings-btn,
-#back-btn,
-#cancel-edit-btn {
-  background: var(--accent-soft);
+.delete-button {
+  background: var(--danger);
   color: #fff;
 }
 
-#settings-btn:hover,
-#back-btn:hover,
-#cancel-edit-btn:hover {
-  background: var(--hover-soft);
-}
 
 /* ===== Settings View ===== */
 
@@ -227,10 +240,10 @@ button:disabled {
 }
 
 #settings-view h2 {
-  font-size: 18px;
+  font-size: var(--font-lg);
   font-weight: 600;
   text-align: center;
-  margin-bottom: 6px;
+  margin-bottom: 0.375rem; /* 6px */
 }
 
 /* ===== Config List ===== */
@@ -255,7 +268,7 @@ button:disabled {
 .config-info {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 0.125rem; /* 2px */
 }
 
 .config-info strong {
@@ -264,26 +277,14 @@ button:disabled {
 
 .config-actions {
   display: flex;
-  gap: 6px;
+  gap: 0.375rem; /* 6px */
 }
 
 .config-item button {
   width: auto;
-  padding: 6px 10px;
-  font-size: 12px;
+  padding: 0.375rem 0.625rem; /* 6px 10px */
+  font-size: var(--font-xs);
   border-radius: var(--radius-sm);
-}
-
-/* Edit / Delete */
-
-.edit-button {
-  background: var(--accent-soft);
-  color: #fff;
-}
-
-.delete-button {
-  background: var(--danger);
-  color: #fff;
 }
 
 /* ===== Edit Config View ===== */
