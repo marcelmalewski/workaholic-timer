@@ -292,7 +292,7 @@ function renderConfigsList() {
             editGoalInput.value = Math.floor(cfg.goalTime / 60);
             editDangerZoneInput.value = Math.floor(cfg.dangerZoneThreshold / 60);
             settingsView.style.display = 'none';
-            editConfigView.style.display = 'block';
+            editConfigView.style.display = 'flex';
         });
         buttonContainer.appendChild(editButtonElement);
 
@@ -327,7 +327,7 @@ addConfigBtn.addEventListener('click', () => {
     editGoalInput.value = '';
     editDangerZoneInput.value = '';
     settingsView.style.display = 'none';
-    editConfigView.style.display = 'block';
+    editConfigView.style.display = 'flex';
 });
 
 backBtn.addEventListener('click', () => {

@@ -1,9 +1,9 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <meta charset="utf-8" />
-    <title>Burnout guard</title>
-    <link rel="stylesheet" href="./home.css" />
+  <meta charset="utf-8"/>
+  <title>Burnout guard</title>
+  <link rel="stylesheet" href="./home.css"/>
 </head>
 <body>
 <div id="loading-message">
@@ -11,74 +11,74 @@
 </div>
 
 <div id="main-view">
-    <div class="input-section">
-        <label class="section-label" for="config-selector">Config</label>
-        <select id="config-selector"></select>
+  <div class="input-section">
+    <label class="section-label" for="config-selector">Config</label>
+    <select id="config-selector"></select>
+  </div>
+
+  <div class="input-section">
+    <label class="section-label">Goal Time</label>
+    <div class="inputs">
+      <div>
+        <label for="goal-time-hours">Hours</label>
+        <input type="number" id="goal-time-hours" min="0" max="59" value="1"/>
+      </div>
+      <div>
+        <label for="goal-time-minutes">Minutes</label>
+        <input type="number" id="goal-time-minutes" min="0" max="59" value="0"/>
+      </div>
     </div>
+  </div>
 
-    <div class="input-section">
-        <label class="section-label">Goal Time</label>
-        <div class="inputs">
-            <div>
-                <label for="goal-time-hours">Hours</label>
-                <input type="number" id="goal-time-hours" min="0" max="59" value="1" />
-            </div>
-            <div>
-                <label for="goal-time-minutes">Minutes</label>
-                <input type="number" id="goal-time-minutes" min="0" max="59" value="0" />
-            </div>
-        </div>
+  <div class="input-section">
+    <label class="section-label">Danger Zone Threshold</label>
+    <div class="inputs">
+      <div>
+        <label for="danger-zone-threshold-hours">Hours</label>
+        <input type="number" id="danger-zone-threshold-hours" min="0" max="59" value="1"/>
+      </div>
+      <div>
+        <label for="danger-zone-threshold-minutes">Minutes</label>
+        <input type="number" id="danger-zone-threshold-minutes" min="0" max="59" value="10"/>
+      </div>
     </div>
+  </div>
 
-    <div class="input-section">
-        <label class="section-label">Danger Zone Threshold</label>
-        <div class="inputs">
-            <div>
-                <label for="danger-zone-threshold-hours">Hours</label>
-                <input type="number" id="danger-zone-threshold-hours" min="0" max="59" value="1" />
-            </div>
-            <div>
-                <label for="danger-zone-threshold-minutes">Minutes</label>
-                <input type="number" id="danger-zone-threshold-minutes" min="0" max="59" value="10" />
-            </div>
-        </div>
-    </div>
+  <div id="timer-display">00:00:00</div>
 
-    <div id="timer-display">00:00:00</div>
-
-    <button id="start-btn">Start Timer</button>
-    <button id="stop-btn">Stop Timer</button>
-    <button id="settings-btn">Settings</button>
+  <button id="start-btn">Start Timer</button>
+  <button id="stop-btn">Stop Timer</button>
+  <button id="settings-btn">Settings</button>
 </div>
 
 <div id="settings-view" style="display: none;">
-    <h2>Configurations</h2>
-    <div id="configs-list"></div>
+  <h2>Configurations</h2>
+  <div id="configs-list"></div>
 
-    <button id="add-config-btn">Add New Config</button>
-    <button id="back-btn">Back</button>
+  <button id="add-config-btn">Add New Config</button>
+  <button id="back-btn">Back</button>
 </div>
 
 <div id="edit-config-view" style="display: none; margin-top: 16px;">
-    <h3>Edit Config</h3>
+  <h2>Edit Config</h2>
 
-    <div class="input-section">
-        <label class="section-label" for="edit-name">Name</label>
-        <input type="text" id="edit-name" placeholder="Config name">
-    </div>
+  <div class="input-section">
+    <label class="section-label" for="edit-name">Name</label>
+    <input type="text" id="edit-name" placeholder="Config name">
+  </div>
 
-    <div class="input-section">
-        <label class="section-label" for="edit-goal">Goal Time (min)</label>
-        <input type="number" id="edit-goal" min="1">
-    </div>
+  <div class="input-section">
+    <label class="section-label" for="edit-goal">Goal Time (min)</label>
+    <input type="number" id="edit-goal" min="1">
+  </div>
 
-    <div class="input-section">
-        <label class="section-label" for="edit-danger-zone">Danger Zone (min)</label>
-        <input type="number" id="edit-danger-zone" min="1">
-    </div>
+  <div class="input-section">
+    <label class="section-label" for="edit-danger-zone">Danger Zone (min)</label>
+    <input type="number" id="edit-danger-zone" min="1">
+  </div>
 
-    <button id="save-edit-btn">Save</button>
-    <button id="cancel-edit-btn">Cancel</button>
+  <button id="save-edit-btn">Save</button>
+  <button id="cancel-edit-btn">Cancel</button>
 </div>
 
 <script src="./home.js"></script>
