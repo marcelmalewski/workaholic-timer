@@ -219,7 +219,7 @@ stopBtn.addEventListener('click', async () => {
 
 settingsBtn.addEventListener('click', () => {
     mainView.style.display = 'none';
-    settingsView.style.display = 'block';
+    settingsView.style.display = 'flex';
     renderConfigsList();
 });
 
@@ -251,7 +251,7 @@ saveEditBtn.addEventListener('click', async () => {
     await saveConfigs();
     loadConfigsToSelector();
     renderConfigsList();
-    settingsView.style.display = 'block';
+    settingsView.style.display = 'flex';
     editConfigView.style.display = 'none';
 });
 
@@ -336,7 +336,7 @@ backBtn.addEventListener('click', () => {
 });
 
 cancelEditBtn.addEventListener('click', () => {
-    settingsView.style.display = 'block';
+    settingsView.style.display = 'flex';
     editConfigView.style.display = 'none';
 });
 
