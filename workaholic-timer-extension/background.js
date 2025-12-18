@@ -67,7 +67,7 @@ async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, workTimeAtInj
                     position: fixed;
                     top: 20px;
                     right: 20px;
-                    background: ${inDangerZone ? '#dc3545' : '#28a745'};
+                    background: ${inDangerZone ? '#b94a4a' : '#007E6E'};
                     color: white;
                     padding: 15px 20px;
                     border-radius: 8px;
@@ -96,7 +96,7 @@ async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, workTimeAtInj
                     currentTimeEl.textContent = formatTime(currentWorkTime);
 
                     if (currentWorkTime >= dangerZoneThreshold && !dangerZoneThresholdReached) {
-                        box.style.background = '#dc3545';
+                        box.style.background = '#b94a4a';
                         currentTimeEl.style.fontSize = '22px';
                         currentTimeEl.style.fontWeight = 'bold';
 
