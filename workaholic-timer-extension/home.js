@@ -183,7 +183,8 @@ function formatTime(timeInSeconds) {
 startBtn.addEventListener('click', async () => {
     const goalTimeHoursValue = parseInt(goalTimeHours.value) || 0;
     const goalTimeMinutesValue = parseInt(goalTimeMinutes.value) || 0;
-    const goalTime = 3;
+    const goalTime = goalTimeHoursValue * 3600 + goalTimeMinutesValue * 60;
+
     if (goalTime === 0) {
         alert('Goal time must be greater than zero');
         return;
@@ -191,7 +192,7 @@ startBtn.addEventListener('click', async () => {
 
     const dangerZoneThresholdHoursValue = parseInt(dangerZoneThresholdHours.value) || 0;
     const dangerZoneThresholdMinutesValue = parseInt(dangerZoneThresholdMinutes.value) || 0;
-    const dangerZoneThreshold = 5;
+    const dangerZoneThreshold = dangerZoneThresholdHoursValue * 3600 + dangerZoneThresholdMinutesValue * 60;
     if (goalTime > dangerZoneThreshold) {
         alert('The danger zone threshold must be greater than the goal time');
         return;
