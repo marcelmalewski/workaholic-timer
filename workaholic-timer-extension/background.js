@@ -1,3 +1,5 @@
+const MAX_WORK_TIME_SECONDS = (9 * 3600) + (59 * 60);
+
 let timerState = {
     timerStateLoadedFromStorage: false,
     isRunning: false,
@@ -95,6 +97,11 @@ async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, workTimeAtInj
                     currentWorkTime++;
                     currentTimeEl.textContent = formatTime(currentWorkTime);
 
+                    if (currentWorkTime >= MAX_WORK_TIME_SECONDS) {
+                        clearInterval(workTimeInterval);
+                        return;
+                    }
+
                     if (currentWorkTime >= dangerZoneThreshold && !dangerZoneThresholdReached) {
                         box.style.background = '#b94a4a';
                         currentTimeEl.style.fontSize = '22px';
@@ -168,7 +175,7 @@ async function injectWorkTimeFloatingBoxIntoTab(goalTimeFormatted, workTimeAtInj
 chrome.alarms.onAlarm.addListener((alarm) => {
     if (alarm.name === alarmName) {
         const currentWorkTime = getCurrentWorkTime();
-        if (currentWorkTime >= timerState.goalTime) {
+        if (currentWorkTime >= 5) {
             timerState.goalTimeFormatted = formatTime(timerState.goalTime);
             timerState.goalReached = true;
 
